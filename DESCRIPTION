@@ -1,0 +1,21 @@
+Package: sequencesAnonymizer
+Type: Package
+Title: What the Package Does (Title Case)
+Version: 0.1
+Date: 2016-01-19
+Author: Sigal Shaked
+Maintainer: Who to complain to <yourfault@somewhere.net>
+Depends: R (>= 3.2.2)
+Description: Generates an Anonymized Sequential Dataset
+License: What license is it under?
+LazyData: TRUE
+Imports:
+  cluster,
+  doParallel,
+  dplyr,
+  foreach,
+  gmp,
+  psych,
+  Rcpp (>= 0.12.2),
+  TraMineR
+LinkingTo: Rcpp
