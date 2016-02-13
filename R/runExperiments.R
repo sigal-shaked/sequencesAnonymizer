@@ -46,11 +46,14 @@ run.single.experiment <- function(experiment.name,d,objectid.pos,timestamp.pos,s
   #####model creation
   model<-build.model(clustered.data=df.clustered,c_eps=p_eps)
   model.size <- sum(unlist(lapply(model,nrow)))
+  supressed_pct<- sum(as.numeric(model$supression_log[,2]))/model.size
   rm(generator)
   rm(df.clustered)
   create.model.time <- as.numeric(unlist((proc.time() - ptm)[3]))
   cur.results <- append(cur.results,create.model.time)
   cur.results <- append(cur.results,model.size)
+  cur.results <- append(cur.results,supressed_pct)
+
   inverse_method=T
   ptm <- proc.time()
   #####generate data
