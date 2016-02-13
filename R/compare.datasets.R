@@ -10,27 +10,27 @@ compare.statistics.by.attribute<- function(t1,t2,relevant.col.names,by.col.names
   c.relevant.col.names <- relevant.col.names
   d1 <- t1
   d2 <- t2
-  d1 <- select_(d1,.dots=relevant.col.names)
-  d2 <- select_(d2,.dots=relevant.col.names)
+  d1 <- dplyr::select_(d1,.dots=relevant.col.names)
+  d2 <- dplyr::select_(d2,.dots=relevant.col.names)
   if(!is.na(factor.calculation)){
-    d1<- mutate_(d1,factor = factor.calculation)
-    d2<- mutate_(d2,factor = factor.calculation)
+    d1<- dplyr::mutate_(d1,factor = factor.calculation)
+    d2<- dplyr::mutate_(d2,factor = factor.calculation)
     c.relevant.col.names<- c(c.relevant.col.names,"factor")
   }
   summarise.seq.sentence<-paste("n_distinct(",seq_id.col.name,")")
   summarise.obj.sentence<-paste("n_distinct(",objectid.col.name,")")
-  src.grouped <- group_by_(d1, .dots=by.col.names )
-  src.stats<- summarise_(src.grouped, sequences=summarise.seq.sentence)
-  src.stats$objects<- summarise_(src.grouped, objects=summarise.obj.sentence)$objects
-  src.stats$total<- summarise(src.grouped,total=n())$total
-  dest.grouped <- group_by_(d2, .dots=by.col.names )
-  dest.stats<- summarise_(dest.grouped, sequences=n_distinct(seq_id.col.name),objects=n_distinct(objectid.col.name))
-  dest.stats$total<- summarise(dest.grouped,total=n())$total
-  compare.sets<- full_join(src.stats, dest.stats, by =by.col.names )
+  src.grouped <- dplyr::group_by_(d1, .dots=by.col.names )
+  src.stats<- dplyr::summarise_(src.grouped, sequences=summarise.seq.sentence)
+  src.stats$objects<- dplyr::summarise_(src.grouped, objects=summarise.obj.sentence)$objects
+  src.stats$total<- dplyr::summarise(src.grouped,total=n())$total
+  dest.grouped <- dplyr::group_by_(d2, .dots=by.col.names )
+  dest.stats<- dplyr::summarise_(dest.grouped, sequences=length(unique(seq_id.col.name)),objects=length(unique(objectid.col.name)))
+  dest.stats$total<- dplyr::summarise(dest.grouped,total=n())$total
+  compare.sets<- dplyr::full_join(src.stats, dest.stats, by =by.col.names )
   compare.sets[is.na(compare.sets)] <- 0
-  compare.sets<-mutate(compare.sets,sequences.diff=abs(sequences.x-sequences.y),objects.diff=abs(objects.x-objects.y),total.diff=abs(total.x-total.y))
+  compare.sets<-dplyr::mutate(compare.sets,sequences.diff=abs(sequences.x-sequences.y),objects.diff=abs(objects.x-objects.y),total.diff=abs(total.x-total.y))
   by.col.names_<- c(by.col.names,"sequences.diff","objects.diff","total.diff")
-  compare.sets<-select_(compare.sets,.dots=by.col.names_)
+  compare.sets<-dplyr::select_(compare.sets,.dots=by.col.names_)
   list(mean=apply(compare.sets[,setdiff(names(compare.sets),by.col.names)],2,mean),
        sd=apply(compare.sets[,setdiff(names(compare.sets),by.col.names)],2,sd))
 }

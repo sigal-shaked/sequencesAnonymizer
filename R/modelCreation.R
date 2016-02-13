@@ -92,7 +92,7 @@ calc.seq.duration<- function(data){
   d <-dplyr::arrange(d,seq_id,timestamp)
   d <- dplyr::mutate(d, seq_duration_numeric = as.numeric(last(timestamp)-first(timestamp), units = "secs"))
   d<- dplyr::ungroup(d)
-  duration.intervals <- dplyr::summarise(d,r0=min(seq_duration_numeric) ,r1=quantile(seq_duration_numeric, p=0.25),r2=quantile(seq_duration_numeric, p=0.5),r3=quantile(seq_duration_numeric, p=0.75),r4=max(seq_duration_numeric))
+  duration.intervals <- dplyr::summarise(d,r0=min(seq_duration_numeric, na.rm = T) ,r1=quantile(seq_duration_numeric, p=0.25, na.rm = T),r2=quantile(seq_duration_numeric, p=0.5, na.rm = T),r3=quantile(seq_duration_numeric, p=0.75, na.rm = T),r4=max(seq_duration_numeric, na.rm = T))
   d <- dplyr::mutate(d,seq_duration =
                 ifelse(seq_duration_numeric < duration.intervals$r1, 1,
                        ifelse (seq_duration_numeric>=duration.intervals$r1 & seq_duration_numeric < duration.intervals$r2,2,
@@ -120,19 +120,21 @@ build.model <- function(clustered.data,c_eps)
   #add timestamp driven factors (hour & weekday)
   sequences<-dplyr::mutate(sequences,hour=as.numeric(substr(timestamp,12,13)))#,weekday =as.POSIXlt(date)$wday)
 
+
   start.of.obj <- dplyr::group_by(sequences,objectid)
   start.of.obj <- dplyr::mutate(start.of.obj,num.seq=n_distinct(seq_id))
   start.of.obj <- dplyr::filter(start.of.obj, timestamp == first(timestamp),row_number()==1)
-  #calculating starting sequences per hour in each cluster
+
+    #calculating starting sequences per hour in each cluster
     #   new.objects.per.date<-calc.single.model(clustered.data=start.of.obj,relevant.col.names=c("objectid","num.seq","cluster_id","timestamp","seq_duration"),factor.calculation="as.Date(as.POSIXlt(timestamp))",by.col.names = c("cluster_id","factor","seq_duration"),within.col.names=c(),statistics.calculations =c("n_distinct(objectid)","mean(num.seq)","sd(num.seq)"),statistics.col.names=c("objects","mean.num.seq","sd.num.seq"))
     #   names(new.objects.per.date)[names(new.objects.per.date)=="factor"]<-"date"
-  start.of.obj
+ # start.of.obj
   start.list <- dplyr::group_by_(start.of.obj,.dots=c("as.Date(as.POSIXlt(timestamp))"))
   start.list <- dplyr::summarise_(start.list,.dots= c("n_distinct(objectid)","mean(num.seq)","sd(num.seq)"))
   start.list[is.na(start.list)] <- 0
   names(start.list)<- c("date","objects","mean.num.seq","sd.num.seq")
-  supression_log <- matrix(data=NA,nrow=0,ncol=2)
-  colnames(supression_log) = c("model","supressed_pct")
+  #supression_log <- matrix(data=NA,nrow=0,ncol=2)
+  #colnames(supression_log) = c("model","supressed_pct")
 
   new.objects.per.date<-calc.single.model(clustered.data=start.of.obj,relevant.col.names=c("objectid","num.seq","cluster_id","timestamp","seq_duration"),factor.calculation="as.Date(as.POSIXlt(timestamp))",by.col.names = c("cluster_id","factor","seq_duration"),within.col.names=c(),statistics.calculations =c("n_distinct(objectid)","mean(num.seq)","sd(num.seq)"),statistics.col.names=c("objects","mean.num.seq","sd.num.seq"))
   names(new.objects.per.date)[names(new.objects.per.date)=="factor"]<-"date"
@@ -141,7 +143,7 @@ build.model <- function(clustered.data,c_eps)
   #cur.model<-calc.single.model(clustered.data=start.of.obj,relevant.col.names=c("objectid","seq_id","cluster_id","timestamp"),factor.calculation="as.integer(ceiling(as.POSIXlt(timestamp)$yday/4))",by.col.names = c("cluster_id","factor"),within.col.names=c(),statistics.calculations =c("n_distinct(seq_id)","n_distinct(objectid)","n()"),statistics.col.names=c("sequences","objects","total"),eps=c_eps)
   cur.model<-calc.single.model(clustered.data=start.of.obj,relevant.col.names=c("objectid","seq_id","cluster_id","timestamp"),factor.calculation="as.numeric(format(as.POSIXlt(timestamp), \"%w\"))",by.col.names = c("cluster_id","factor"),within.col.names=c(),statistics.calculations =c("n_distinct(seq_id)","n_distinct(objectid)","n()"),statistics.col.names=c("sequences","objects","total"),eps=c_eps)
   factor.1.start.cluster <- to.valid.matrix(cur.model$stats)
-  supression_log <- rbind(supression_log,c(model="factor.1.start.cluster",supressed_pct=cur.model$supressed))
+  supression_log <- c(model="factor.1.start.cluster",supressed_pct=cur.model$supressed)
   #factor.month.start.cluster
   cur.model<-calc.single.model(clustered.data=start.of.obj,relevant.col.names=c("objectid","seq_id","cluster_id","timestamp"),factor.calculation="as.POSIXlt(timestamp)$mon",by.col.names = c("cluster_id","factor"),within.col.names=c(),statistics.calculations =c("n_distinct(seq_id)","n_distinct(objectid)","n()"),statistics.col.names=c("sequences","objects","total"),eps=c_eps)
   factor.2.start.cluster <- to.valid.matrix(cur.model$stats)
@@ -159,9 +161,18 @@ build.model <- function(clustered.data,c_eps)
   start.of.seq <- dplyr::group_by(sequences,seq_id)
   ######
   start.of.seq <- dplyr::filter(start.of.seq, timestamp == first(timestamp),row_number()==1)
+  #Calculates mean sequqence length
+  mean.seq_duration <- dplyr::group_by(start.of.seq,seq_duration)
+  mean.seq_duration <- dplyr::summarize(mean.seq_duration, mean = mean(seq_duration_numeric),sd=sd(seq_duration_numeric),freq=n())
+  mean.seq_duration<- dplyr::ungroup(mean.seq_duration)
+  mean.seq_duration$freq <-mean.seq_duration$freq/sum(mean.seq_duration$freq)
+  mean.seq_duration[is.na(mean.seq_duration$sd),"sd"]<- 0
+  mean.start_hour <- dplyr::group_by(start.of.seq,hour)
+  mean.start_hour <- dplyr::summarize(mean.start_hour, freq=n())
+  mean.start_hour<- dplyr::ungroup(mean.start_hour)
+  mean.start_hour$freq <-mean.start_hour$freq/sum(mean.start_hour$freq)
 
-
-  #factor.week.seq_duration
+    #factor.week.seq_duration
   #cur.model<- calc.single.model(clustered.data=start.of.seq,relevant.col.names=c("objectid","seq_id","cluster_id","timestamp","hour","seq_duration","seq_duration_numeric"),factor.calculation="as.integer(ceiling(as.POSIXlt(timestamp)$yday/4))",by.col.names = c("cluster_id","factor"),within.col.names=c("hour","seq_duration"),statistics.calculations =c("n_distinct(seq_id)","n_distinct(objectid)","n()","mean(seq_duration_numeric)","sd(seq_duration_numeric)"),statistics.col.names=c("sequences","objects","total","seq_duration_numeric","dur_sd"),eps=c_eps)
   cur.model<- calc.single.model(clustered.data=start.of.seq,relevant.col.names=c("objectid","seq_id","cluster_id","timestamp","hour","seq_duration","seq_duration_numeric"),factor.calculation="as.numeric(format(as.POSIXlt(timestamp), \"%w\"))",by.col.names = c("cluster_id","factor"),within.col.names=c("hour","seq_duration"),statistics.calculations =c("n_distinct(seq_id)","n_distinct(objectid)","n()","mean(seq_duration_numeric)","sd(seq_duration_numeric)"),statistics.col.names=c("sequences","objects","total","seq_duration_numeric","dur_sd"),eps=c_eps)
   factor.1.start_info <- to.valid.matrix(cur.model$stats)
@@ -368,6 +379,8 @@ build.model <- function(clustered.data,c_eps)
     common_clusters=common_clusters,
     mean.cluster.tbe=mean.cluster.tbe,
     mean.transition.tbe=mean.transition.tbe,
+    mean.seq_duration = mean.seq_duration,
+    mean.start_hour = mean.start_hour,
     supression_log=supression_log)
     #generator_obj$
 #     new.objects.per.date=new.objects.per.date
