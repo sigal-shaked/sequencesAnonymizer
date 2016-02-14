@@ -1,6 +1,46 @@
 require(dplyr)
 require(smoothmest)
 
+differential.privacy<- function(data,epsilon,by.col.names,within.col.names,statistics.calculations,statistics.col.names){
+  origin_size <- dim(data)[1]
+  new.data<- dplyr::mutate(data,differ=(total.x/total.y)/((total.x-1)/(total.y-1)))
+  new.data[is.na(new.data$"differ"),"differ"]<- 1/0
+  removed<- dplyr::filter(new.data , differ>exp(epsilon))
+  new.data<- dplyr::filter(new.data , differ<=exp(epsilon))
+  if (!is.null((epsilon))){
+    while (nrow(removed)>0 & nrow(new.data)>0){
+      removed.sum <- dplyr::group_by_(removed,.dots=c(by.col.names))
+      removed.sum <- dplyr::summarise(removed.sum,total.y=sum(total.x))
+      if(!is.null(by.col.names)){
+        new.data$idx <- do.call("paste", c(new.data[,by.col.names],sep="_"))
+        removed.sum$idx <- do.call("paste", c(removed.sum[,by.col.names],sep="_"))
+        removed.list <- match(new.data$idx ,removed.sum$idx, nomatch =NA)
+      } else{
+        removed.list <- 1
+      }
+      if(is.null(removed.list)){
+        new.data$removed<- 0
+      } else{
+        removed.sum<- removed.sum$"total.y"[removed.list]
+        removed.sum[is.na(removed.sum)]<- 0
+        new.data$removed <- removed.sum
+      }
+      new.data <- dplyr::mutate(new.data,total.y=total.y-removed)
+      new.data<- dplyr::mutate(new.data,differ=(total.x/total.y)/((total.x-1)/(total.y-1)))
+      removed<- dplyr::filter(new.data , differ>exp(epsilon))
+      new.data<- dplyr::filter(new.data , differ<=exp(epsilon))
+    }
+  }
+  names(new.data)[names(new.data) %in% paste(statistics.col.names,".x",sep="")]<- statistics.col.names
+  new.data<- dplyr::mutate(new.data,total=(total/total.y))
+  new.data <- dplyr::select_(new.data ,.dots=c(by.col.names,within.col.names,statistics.col.names))
+  new.data[is.na(new.data)] <- 0
+  list(stats=new.data,supressed = (origin_size-dim(new.data)[1]))#/origin_size)
+}
+
+
+
+
 calc.single.model<- function(clustered.data,relevant.col.names,factor.calculation=NA,by.col.names,within.col.names,statistics.calculations,statistics.col.names,eps = NULL){
   d <- clustered.data
   d <- dplyr::select_(d,.dots=relevant.col.names)
@@ -29,50 +69,60 @@ calc.single.model<- function(clustered.data,relevant.col.names,factor.calculatio
     d <- dplyr::inner_join(d.level1, d.level0, by = by.col.names)
   }
   d[is.na(d)] <- 0
-  for (cur in statistics.col.names){
-    #if (cur %in% c("sequences","total")){
-    if (cur == "total"){
-      cur.y<- paste(cur,".y",sep="")
-    }
-    else{
-      cur.y<- 1
-    }
-    cur.x<- paste(cur,".x",sep="")
-    d<-dplyr::mutate_(d,.dots=paste(cur.x,"/",cur.y,sep=""))
-    names(d)[dim(d)[2]]<- cur
-    if (cur =="total"){
-      d<-dplyr::mutate_(d,.dots=paste("(",cur.x,"-",1,")","/","(",cur.y,"-",1,")",sep=""))
-      names(d)[dim(d)[2]]<- c("total_without")
-      d<-dplyr::mutate_(d,.dots=paste("(","total.x","/","total.y",")","/", "total_without",sep=""))
-      names(d)[dim(d)[2]]<- "differ"
-      d[is.na(d$total_without),"differ"]<- 1/0
-    }
+  if(!is.null(within.col.names)){
+    differential.privacy(data=d,epsilon=eps,by.col.names,within.col.names,statistics.calculations,statistics.col.names)
+  } else{
+      names(d)[names(d) %in% paste(statistics.col.names,".x",sep="")]<- statistics.col.names
+      d <- dplyr::select_(d ,.dots=c(by.col.names,within.col.names,statistics.col.names))
+      d[is.na(d)] <- 0
+      list(stats=d,supressed = 0)
   }
-  origin_size <- dim(d)[1]
-  if (!is.null((eps))){
-    #ddoublex(x=0,mu=0,lambda=10)
-    d<- dplyr::filter(d , differ<=exp(eps))#/min_length.x)
-    #Recalculate "total" by normalizing it (for possible changes after supression)
-    norm.level1 <- dplyr::group_by_(d,.dots=c(by.col.names,within.col.names))
-    norm.level1 <- dplyr::summarise(norm.level1,sum(total))
-    norm.level0 <- dplyr::group_by_(d,.dots=by.col.names)
-    norm.level0 <- dplyr::summarise(norm.level0,sum(total))
-    if(is.null(by.col.names)){
-      norm.merged <- merge(norm.level1, norm.level0,by=NULL)
-    } else{
-      norm.merged <- dplyr::inner_join(norm.level1, norm.level0, by = by.col.names)
-    }
-    norm.merged <- cbind(norm.merged,norm.total=norm.merged$"sum(total).x"/norm.merged$"sum(total).y")
-
-    d<- dplyr::inner_join(d, norm.merged[,c(by.col.names,within.col.names,"norm.total")], by = c(by.col.names,within.col.names))
-    d$total <- d$norm.total
-    d<- d[1:(dim(d)[2]-1)]
-    d[is.na(d)] <- 0
-  }
-  d <- dplyr::select_(d ,.dots=c(by.col.names,within.col.names,statistics.col.names))
-  d <- replace(d, is.na(d), 0)
-  list(stats=d,supressed = (origin_size-dim(d)[1]))#/origin_size)
 }
+
+#   for (cur in statistics.col.names){
+#     #if (cur %in% c("sequences","total")){
+#     if (cur == "total"){
+#       cur.y<- paste(cur,".y",sep="")
+#     }
+#     else{
+#       cur.y<- 1
+#     }
+#     cur.x<- paste(cur,".x",sep="")
+#     d<-dplyr::mutate_(d,.dots=paste(cur.x,"/",cur.y,sep=""))
+#     names(d)[dim(d)[2]]<- cur
+#     if (cur =="total"){
+#       d<-dplyr::mutate_(d,.dots=paste("(",cur.x,"-",1,")","/","(",cur.y,"-",1,")",sep=""))
+#       names(d)[dim(d)[2]]<- c("total_without")
+#       d<-dplyr::mutate_(d,.dots=paste("(","total.x","/","total.y",")","/", "total_without",sep=""))
+#       names(d)[dim(d)[2]]<- "differ"
+#       d[is.na(d$total_without),"differ"]<- 1/0
+#     }
+#   }
+#   origin_size <- dim(d)[1]
+#   if (!is.null((eps))){
+#     #ddoublex(x=0,mu=0,lambda=10)
+#     d<- dplyr::filter(d , differ<=exp(eps))#/min_length.x)
+#     #Recalculate "total" by normalizing it (for possible changes after supression)
+#     norm.level1 <- dplyr::group_by_(d,.dots=c(by.col.names,within.col.names))
+#     norm.level1 <- dplyr::summarise(norm.level1,sum(total))
+#     norm.level0 <- dplyr::group_by_(d,.dots=by.col.names)
+#     norm.level0 <- dplyr::summarise(norm.level0,sum(total))
+#     if(is.null(by.col.names)){
+#       norm.merged <- merge(norm.level1, norm.level0,by=NULL)
+#     } else{
+#       norm.merged <- dplyr::inner_join(norm.level1, norm.level0, by = by.col.names)
+#     }
+#     norm.merged <- cbind(norm.merged,norm.total=norm.merged$"sum(total).x"/norm.merged$"sum(total).y")
+#
+#     d<- dplyr::inner_join(d, norm.merged[,c(by.col.names,within.col.names,"norm.total")], by = c(by.col.names,within.col.names))
+#     d$total <- d$norm.total
+#     d<- d[1:(dim(d)[2]-1)]
+#     d[is.na(d)] <- 0
+#   }
+#   d <- dplyr::select_(d ,.dots=c(by.col.names,within.col.names,statistics.col.names))
+#   d <- replace(d, is.na(d), 0)
+#   list(stats=d,supressed = (origin_size-dim(d)[1]))#/origin_size)
+#}
 
 to.valid.matrix<- function(data){
   if(dim(data)[1]==1){
@@ -317,29 +367,39 @@ build.model <- function(clustered.data,c_eps)
   sequences1<- NULL
 
   # list all possible transitions between states, but not in sequential order (for corrections when no transition is found due to anonymization)
-  common_states <- unique(sequences[,c("seq_id","state_id")])
-  common_states <- dplyr::inner_join(common_states,common_states,by=c("seq_id" = "seq_id"))
-  common_states <- dplyr::group_by(common_states,state_id.x,state_id.y)
-  common_states <- dplyr::summarise(common_states,sequences=n())
-  total_cnt <- sum(common_states$sequences)
-  orig_size <- dim(common_states)[1]
-  common_states$differ<-(common_states$sequences/total_cnt)/((common_states$sequences-1)/(total_cnt-1))
-  common_states<- dplyr::filter(common_states , differ<=exp(c_eps))
-  total_cnt <- sum(common_states$sequences) #renormalize after possible supression
-  common_states$sequences<-common_states$sequences/total_cnt
-  supression_log <- rbind(supression_log,c(model="common_states",supressed_amount=dim(common_states)[1]))
+  common_states <- unique(sequences[,c("objectid","seq_id","state_id")])
+  common_states <- dplyr::inner_join(common_states,common_states,by=c("seq_id" = "seq_id","objectid"="objectid"))
+  cur.model<-calc.single.model(clustered.data=common_states,relevant.col.names=c("objectid","seq_id","state_id.x","state_id.y"),factor.calculation=NA,by.col.names = c("state_id.x"),within.col.names=c("state_id.y"),statistics.calculations =c("n_distinct(seq_id)","n_distinct(objectid)","n()"),statistics.col.names=c("sequences","objects","total"),eps=c_eps)
+  common_states <- to.valid.matrix(cur.model$stats)
+  supression_log <- rbind(supression_log,c(model="common_states",supressed_amount=cur.model$supressed))
 
-  common_clusters <- unique(cluster.transition[,c("seq_id","cluster_id")])
-  common_clusters <- dplyr::inner_join(common_clusters,common_clusters,by=c("seq_id" = "seq_id"))
-  common_clusters <- dplyr::group_by(common_clusters,cluster_id.x,cluster_id.y)
-  common_clusters <- dplyr::summarise(common_clusters,sequences=n())
-  total_cnt <- sum(common_clusters$sequences)
-  orig_size <- dim(common_clusters)[1]
-  common_clusters$differ<-(common_clusters$sequences/total_cnt)/((common_clusters$sequences-1)/(total_cnt-1))
-  common_clusters<- dplyr::filter(common_clusters , differ<=exp(c_eps))
-  total_cnt <- sum(common_clusters$sequences) #renormalize after possible supression
-  common_clusters$sequences<-common_clusters$sequences/total_cnt
-  supression_log <- rbind(supression_log,c(model="common_clusters",supressed_amount=dim(common_clusters)[1]))
+#   common_states <- dplyr::group_by(common_states,state_id.x,state_id.y)
+#   common_states <- dplyr::summarise(common_states,sequences=n())
+#   total_cnt <- sum(common_states$sequences)
+#   orig_size <- dim(common_states)[1]
+#   common_states$differ<-(common_states$sequences/total_cnt)/((common_states$sequences-1)/(total_cnt-1))
+#   common_states<- dplyr::filter(common_states , differ<=exp(c_eps))
+#   total_cnt <- sum(common_states$sequences) #renormalize after possible supression
+#   common_states$sequences<-common_states$sequences/total_cnt
+#   supression_log <- rbind(supression_log,c(model="common_states",supressed_amount=dim(common_states)[1]))
+#
+
+  common_clusters <- unique(cluster.transition[,c("objectid","seq_id","cluster_id")])
+  common_clusters <- dplyr::inner_join(common_clusters,common_clusters,by=c("objectid"="objectid"))
+  names(common_clusters)[2]<- "seq_id"
+  cur.model<-calc.single.model(clustered.data=common_clusters,relevant.col.names=c("objectid","seq_id","cluster_id.x","cluster_id.y"),factor.calculation=NA,by.col.names = c("cluster_id.x"),within.col.names=c("cluster_id.y"),statistics.calculations =c("n_distinct(seq_id)","n_distinct(objectid)","n()"),statistics.col.names=c("sequences","objects","total"),eps=c_eps)
+  common_clusters <- to.valid.matrix(cur.model$stats)
+  supression_log <- rbind(supression_log,c(model="common_clusters",supressed_amount=cur.model$supressed))
+
+#   common_clusters <- dplyr::group_by(common_clusters,cluster_id.x,cluster_id.y)
+#   common_clusters <- dplyr::summarise(common_clusters,sequences=n())
+#   total_cnt <- sum(common_clusters$sequences)
+#   orig_size <- dim(common_clusters)[1]
+#   common_clusters$differ<-(common_clusters$sequences/total_cnt)/((common_clusters$sequences-1)/(total_cnt-1))
+#   common_clusters<- dplyr::filter(common_clusters , differ<=exp(c_eps))
+#   total_cnt <- sum(common_clusters$sequences) #renormalize after possible supression
+#   common_clusters$sequences<-common_clusters$sequences/total_cnt
+#   supression_log <- rbind(supression_log,c(model="common_clusters",supressed_amount=dim(common_clusters)[1]))
 
   list(
     start.list=start.list,

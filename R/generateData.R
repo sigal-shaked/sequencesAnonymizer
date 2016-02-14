@@ -125,7 +125,7 @@ R_sample_cluster<- function(m,factor.1,factor.2,factor.3,method,prev_id=NULL){
         w=c.w)
     } else{
       if (dim(m$common_clusters)[1]>0){
-        cur.sampled.cluster <- sample(unlist(unique(m$common_clusters[1])),size=1)
+        cur.sampled.cluster <- sample(unlist(unique(m$common_clusters[,1])),size=1)
       } else{
         cur.sampled.cluster <- NA
       }
@@ -152,7 +152,8 @@ R_sample_cluster<- function(m,factor.1,factor.2,factor.3,method,prev_id=NULL){
         w=c.w)
     } else{
       c_cluster_id = NA
-      cur.near <- dplyr::filter(as.data.frame(to.valid.matrix(m$common_clusters)),cluster_id.x ==prev_id)[,c(2,3)]
+      cur.near <- dplyr::filter(
+        as.data.frame(to.valid.matrix(m$common_clusters)),cluster_id.x ==prev_id)[,c(2,5)]
 
       if(dim(cur.near)[1]>1){
         c_cluster_id <- sample(as.character(cur.near[,1]),size=1,prob=as.numeric(cur.near[,2]))
@@ -216,7 +217,7 @@ R_sample_state<- function(m,p_cluster_id,factor.1,factor.2,factor.3,method,prev_
           m3=cur.nocluster.factor.3.starting.state,
           m4=cur.nocluster.nofactor.starting.state,
           w=c.w)
-      } else{cur.state <-sample(unlist(unique(m$common_states[1])),1)}
+      } else{cur.state <-sample(unlist(unique(m$common_states[,1])),1)}
     }
     #not the starting state
   } else{
@@ -266,7 +267,7 @@ R_sample_state<- function(m,p_cluster_id,factor.1,factor.2,factor.3,method,prev_
   }
   if(cur.state[1]==-1){
     c.state_id <- -1
-    cur.near <- dplyr::filter(as.data.frame(to.valid.matrix(m$common_states)),state_id.x ==prev_id)[,c(2,3)]
+    cur.near <- dplyr::filter(as.data.frame(to.valid.matrix(m$common_states)),state_id.x ==prev_id)[,c(2,5)]
     if(dim(cur.near)[1]>1){
       c.state_id <- sample(cur.near[,1],size=1,prob=cur.near[,2])
     } else if(dim(cur.near)[1]==1){

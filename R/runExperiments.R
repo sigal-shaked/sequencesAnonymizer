@@ -35,8 +35,8 @@ run.single.experiment <- function(experiment.name,d,objectid.pos,timestamp.pos,s
   min.cluster.size <- dplyr::group_by(df.clustered,cluster_id)
   min.objs.per.cluster<- min(dplyr::summarize(min.cluster.size,length(unique(objectid)))[2])
   min.seqs.per.cluster<- min(dplyr::summarize(min.cluster.size,length(unique(seq_id)))[2])
-  mean.objs.per.cluster<- mean(dplyr::summarize(min.cluster.size,length(unique(objectid)))[2])
-  mean.seqs.per.cluster<- mean(dplyr::summarize(min.cluster.size,length(unique(seq_id)))[2])
+  mean.objs.per.cluster<- mean(unlist(dplyr::summarize(min.cluster.size,length(unique(objectid)))[2]))
+  mean.seqs.per.cluster<- mean(unlist(dplyr::summarize(min.cluster.size,length(unique(seq_id)))[2]))
   cur.results <- append(cur.results,min.objs.per.cluster)
   cur.results <- append(cur.results,min.seqs.per.cluster)
   cur.results <- append(cur.results,mean.objs.per.cluster)
@@ -46,7 +46,7 @@ run.single.experiment <- function(experiment.name,d,objectid.pos,timestamp.pos,s
   #####model creation
   model<-build.model(clustered.data=df.clustered,c_eps=p_eps)
   model.size <- sum(unlist(lapply(model,nrow)))
-  supressed_pct<- sum(as.numeric(model$supression_log[,2]))/model.size
+  supressed_pct<- sum(as.numeric(model$supression_log[,2]))/(model.size+sum(as.numeric(model$supression_log[,2]))-nrow(model$supression_log))
   rm(generator)
   rm(df.clustered)
   create.model.time <- as.numeric(unlist((proc.time() - ptm)[3]))
