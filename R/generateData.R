@@ -153,7 +153,7 @@ R_sample_cluster<- function(m,factor.1,factor.2,factor.3,method,prev_id=NULL){
     } else{
       c_cluster_id = NA
       cur.near <- dplyr::filter(
-        as.data.frame(to.valid.matrix(m$common_clusters)),cluster_id.x ==prev_id)[,c(2,5)]
+        as.data.frame(to.valid.matrix(m$common_clusters)),"cluster_id.x" ==prev_id)[,c(2,5)]
 
       if(dim(cur.near)[1]>1){
         c_cluster_id <- sample(as.character(cur.near[,1]),size=1,prob=as.numeric(cur.near[,2]))
@@ -267,7 +267,7 @@ R_sample_state<- function(m,p_cluster_id,factor.1,factor.2,factor.3,method,prev_
   }
   if(cur.state[1]==-1){
     c.state_id <- -1
-    cur.near <- dplyr::filter(as.data.frame(to.valid.matrix(m$common_states)),state_id.x ==prev_id)[,c(2,5)]
+    cur.near <- dplyr::filter(as.data.frame(to.valid.matrix(m$common_states)),"state_id.x" ==prev_id)[,c(2,5)]
     if(dim(cur.near)[1]>1){
       c.state_id <- sample(cur.near[,1],size=1,prob=cur.near[,2])
     } else if(dim(cur.near)[1]==1){

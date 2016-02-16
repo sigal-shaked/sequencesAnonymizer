@@ -39,7 +39,7 @@ add_states <- function (x, ...) {
 sequencesGenerator.default <- function(data,objectid.pos=1,seq_id.pos=0,timestamp.pos=2,stateid.pos=3,secs.between.sequences=NA,timestamp.format='%Y-%m-%d %H:%M:%S',...) {
   seqGenerator<-NULL
 
-  d <- data[(!is.na(data[,objectid.pos]) && !is.na(data[,timestamp.pos]) &&  !is.na(data[,stateid.pos])),]
+  d <- as.data.frame(data[(!is.na(data[,objectid.pos]) && !is.na(data[,timestamp.pos]) &&  !is.na(data[,stateid.pos])),])
   m<- d[,0]
   if (length(objectid.pos)>1) {
     m$objectid <- unlist(lapply(as.data.frame(do.call(paste0, d[,objectid.pos])), as.numeric))

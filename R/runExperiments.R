@@ -12,7 +12,30 @@ run.single.experiment <- function(experiment.name,d,objectid.pos,timestamp.pos,s
   n.objects <- length(unique(df[,"objectid"]))
   n.sequences <- length(unique(df[,"seq_id"]))
   n.records <- dim(df)[1]
-  cur.results <- append(cur.results,c(n.objects,n.sequences,n.records))
+
+  g<- dplyr::group_by(df,seq_id)
+  g<- dplyr::summarize(g,size=n())
+  mean.sequence.size <- mean(g$size)
+  min.sequence.size <- min(g$size)
+  max.sequence.size <- max(g$size)
+
+  g<- dplyr::group_by(df,objectid)
+  g<- dplyr::summarize(g,size=n())
+  mean.object.size <- mean(g$size)
+  min.object.size <- min(g$size)
+  max.object.size <- max(g$size)
+
+  g<- unique(df[,c("objectid","seq_id")])
+  g<- dplyr::group_by(g,objectid)
+  g<- dplyr::summarize(g,size=n())
+  mean.seq.per.object <- mean(g$size)
+  min.seq.per.object <- min(g$size)
+  max.seq.per.object <- max(g$size)
+
+  cur.results <- append(cur.results,c(n.objects,n.sequences,n.records,
+                                      mean.sequence.size,min.sequence.size,max.sequence.size,
+                                      mean.object.size,min.object.size,max.object.size,
+                                      mean.seq.per.object,min.seq.per.object,max.seq.per.object))
   if(k==0)
   {
     cur.k=1
@@ -31,6 +54,7 @@ run.single.experiment <- function(experiment.name,d,objectid.pos,timestamp.pos,s
 
   cluster.time <- as.numeric(unlist((proc.time() - ptm)[3]))
   cur.results <- append(cur.results,cluster.time)
+  cur.results <- append(cur.results,cur.k)
 
   min.cluster.size <- dplyr::group_by(df.clustered,cluster_id)
   min.objs.per.cluster<- min(dplyr::summarize(min.cluster.size,length(unique(objectid)))[2])
@@ -47,12 +71,14 @@ run.single.experiment <- function(experiment.name,d,objectid.pos,timestamp.pos,s
   model<-build.model(clustered.data=df.clustered,c_eps=p_eps)
   model.size <- sum(unlist(lapply(model,nrow)))
   supressed_pct<- sum(as.numeric(model$supression_log[,2]))/(model.size+sum(as.numeric(model$supression_log[,2]))-nrow(model$supression_log))
+  min_support<-min(unlist(lapply(model,FUN=function(x){if( "total_numeric" %in% colnames(x) ){min(x[,"total_numeric"],na.rm = T)}})))
   rm(generator)
   rm(df.clustered)
   create.model.time <- as.numeric(unlist((proc.time() - ptm)[3]))
   cur.results <- append(cur.results,create.model.time)
   cur.results <- append(cur.results,model.size)
   cur.results <- append(cur.results,supressed_pct)
+  cur.results <- append(cur.results,min_support)
 
   inverse_method=T
   ptm <- proc.time()
