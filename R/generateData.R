@@ -27,11 +27,16 @@ build_vector_of_sizes <- function(m1_size,m2_size,m3_size,is_inverse){
 }
 
 to.valid.matrix<- function(data){
-  if(dim(data)[1]==1){
-    tmp<-matrix(unlist(data),nrow=1)
-    colnames(tmp)<- names(data)
-  } else{
-    tmp<- as.matrix(data)
+  tmp<-data
+  if(!is.null(data)){
+    if(is.vector(data)){
+      tmp<-matrix(unlist(data),nrow=1)
+      colnames(tmp)<- names(data)
+    } else{
+     # if(dim(data)[1]>0){
+        tmp<- as.matrix(data)
+    #  }
+    }
   }
   tmp
 }
@@ -88,10 +93,12 @@ R_sample_start_info<- function(m,factor.1,factor.2,factor.3,method,p_cluster_id=
         cur.numeric_duration <- rnorm(1,mean = m$mean.seq_duration[2],sd = m$mean.seq_duration[3])
         cur.seq_duration <- m$mean.seq_duration[1]
       }
-      if(dim(m$mean.start_hour)[1]>0){
+      if(dim(m$mean.start_hour)[1]>1){
         cur.hour<- sample(m$mean.start_hour$hour,size=1,prob=m$mean.start_hour$freq)
-      } else {
+      } else if(dim(m$mean.start_hour)[1]==0){
         cur.hour<- m$mean.start_hour[1]
+      } else{
+        cur.hour<- m$mean.start_hour$hour
       }
       cur.start.info <- c(cur.hour,cur.seq_duration,cur.numeric_duration)
     }
@@ -217,7 +224,11 @@ R_sample_state<- function(m,p_cluster_id,factor.1,factor.2,factor.3,method,prev_
           m3=cur.nocluster.factor.3.starting.state,
           m4=cur.nocluster.nofactor.starting.state,
           w=c.w)
-      } else{cur.state <-sample(unlist(unique(m$common_states[,1])),1)}
+      } else if(dim(m$common_states)[1]>0){
+          cur.state <-sample(unlist(unique(m$common_states[,1])),1)
+      } else{
+          cur.state <- -1
+        }
     }
     #not the starting state
   } else{
@@ -301,6 +312,7 @@ sample.sequence.chain<- function(m,p_objID,p_seqID,p_cluster_id,p_seq_duration,p
   cur.factor.3 <- as.integer(as.POSIXlt(p_start_time,origin = "1970-01-01")$wday)
   cur.timestamp <- p_start_time
   cur.state <- R_sample_state(m,p_cluster_id=p_cluster_id,factor.1=cur.factor.1,factor.2=cur.factor.2,factor.3=cur.factor.3,method=p_method)
+  cur.sequence <- NULL
   if(cur.state!=-1){
     cur.sequence <- as.matrix(c(p_objID,p_seqID,as.character(cur.timestamp),cur.state))
     dim(cur.sequence)<-c(1,4)
@@ -374,8 +386,8 @@ sample.meta.chain<- function(m,p_method){
         if(is.null(sequences.frame)){
           sequences.frame <- as.matrix(c(i,cur.obj,cur.seq,c.cluster_id,cur.seq.duration,as.character(start.timestamp),as.character(end.timestamp)))
           dim(sequences.frame)<- c(1,7)
-          names(sequences.frame)<- c("dateNo","objectID","seqID","clusterID","seq_duration","startTime","endTime")
           sequences.frame<-to.valid.matrix(sequences.frame)
+          colnames(sequences.frame)<- c("dateNo","objectID","seqID","clusterID","seq_duration","startTime","endTime")
         } else{
           sequences.frame<- rbind(sequences.frame,c(i,cur.obj,cur.seq,c.cluster_id,cur.seq.duration,as.character(start.timestamp),as.character(end.timestamp)))
         }
@@ -390,7 +402,7 @@ sample.meta.chain<- function(m,p_method){
 
 generate.synthetic.data <- function(m,p.method){
   doParallel::registerDoParallel(parallel::detectCores())
-  sequences.frame<-sample.meta.chain(m,p.method)
+  sequences.frame<-sample.meta.chain(m,p_method=p.method)
   require(foreach)
 
   synthetic.data<-foreach(i = 1:dim(sequences.frame)[1],.packages=c("dplyr","psych","Rcpp","sequencesAnonymizer"),.combine="rbind") %dopar% {
@@ -409,11 +421,11 @@ generate.synthetic.data <- function(m,p.method){
                                       p_start_time=cur.startTime,
                                       p_end_time=cur.endTime,
                                       p_method=p.method)
-    if(dim(cur.bulk)[1]==0){
+    if(is.null(cur.bulk) || dim(cur.bulk)[1]==0){
       cur.bulk<-c("*","*","*","*")
       dim(cur.bulk)<-c(1,4)
-      names(cur.bulk)<-c("objectid","seq_id","timestamp","state_id")
-      cur.sequence<- to.valid.matrix(cur.bulk)
+      colnames(cur.bulk)<-c("objectid","seq_id","timestamp","state_id")
+      cur.bulk<- to.valid.matrix(cur.bulk)
     }
     cur.bulk
   }

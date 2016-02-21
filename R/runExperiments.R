@@ -71,14 +71,15 @@ run.single.experiment <- function(experiment.name,d,objectid.pos,timestamp.pos,s
   model<-build.model(clustered.data=df.clustered,c_eps=p_eps)
   model.size <- sum(unlist(lapply(model,nrow)))
   supressed_pct<- sum(as.numeric(model$supression_log[,2]))/(model.size+sum(as.numeric(model$supression_log[,2]))-nrow(model$supression_log))
-  min_support<-min(unlist(lapply(model,FUN=function(x){if( "total_numeric" %in% colnames(x) ){min(x[,"total_numeric"],na.rm = T)}})))
+  min_support<-min(unlist(lapply(model,FUN=function(x){if( "total_numeric" %in% colnames(x)&& dim(x)[1]>0 ){min(x[,"total_numeric"],na.rm = T)}})))
+  mean_support<-mean(unlist(lapply(model,FUN=function(x){if( "total_numeric" %in% colnames(x)&& dim(x)[1]>0 ){min(x[,"total_numeric"],na.rm = T)}})))
+  stdev_support<-sd(unlist(lapply(model,FUN=function(x){if( "total_numeric" %in% colnames(x) && dim(x)[1]>0){min(x[,"total_numeric"],na.rm = T)}})))
+  max_support<-max(unlist(lapply(model,FUN=function(x){if( "total_numeric" %in% colnames(x) && dim(x)[1]>0){min(x[,"total_numeric"],na.rm = T)}})))
   rm(generator)
   rm(df.clustered)
   create.model.time <- as.numeric(unlist((proc.time() - ptm)[3]))
-  cur.results <- append(cur.results,create.model.time)
-  cur.results <- append(cur.results,model.size)
-  cur.results <- append(cur.results,supressed_pct)
-  cur.results <- append(cur.results,min_support)
+  cur.results <- append(cur.results,c(create.model.time,model.size))
+  cur.results <- append(cur.results,c(supressed_pct,min_support,mean_support,stdev_support,max_support))
 
   inverse_method=T
   ptm <- proc.time()
@@ -104,46 +105,50 @@ run.single.experiment <- function(experiment.name,d,objectid.pos,timestamp.pos,s
   cur.results <- append(cur.results,c(ns.objects,ns.sequences,ns.records))
 
   #####compare datsets
+  if(ns.records>0){
+    dist.lsh <- mean.seq.dist.lsh(df,synthetic.data,shingle.size=1,num.hashes=200)
+    cur.results <- append(cur.results,dist.lsh)
 
-  dist.lsh <- mean.seq.dist.lsh(df,synthetic.data,shingle.size=1,num.hashes=200)
-  cur.results <- append(cur.results,dist.lsh)
+    ###dist.lcs <- mean.seq.dist.lcs(df,synthetic.data)
+    ###cur.results <- append(cur.results,dist.lcs)
 
-  ###dist.lcs <- mean.seq.dist.lcs(df,synthetic.data)
-  ###cur.results <- append(cur.results,dist.lcs)
+    dist.obj.lsh <- mean.obj.dist.lsh(df,synthetic.data,shingle.size=1,num.hashes=200)
+    cur.results <- append(cur.results,dist.obj.lsh)
 
-  dist.obj.lsh <- mean.obj.dist.lsh(df,synthetic.data,shingle.size=1,num.hashes=200)
-  cur.results <- append(cur.results,dist.obj.lsh)
+    frequent.itemset <- compare.frequent.itemset(d1=df,d2=synthetic.data,top=20)
+    cur.results <- append(cur.results,frequent.itemset)
 
-  frequent.itemset <- compare.frequent.itemset(d1=df,d2=synthetic.data,top=20)
-  cur.results <- append(cur.results,frequent.itemset)
+    #frequent.itemset <- compare.frequent.itemset(D1=df,D2=synthetic.data,pMinSupport=0.23,top=20)
+    #cur.results <- append(cur.results,as.vector(unlist(frequent.itemset)))
+    #cur.results <- append(cur.results,frequent.itemset[[1]]/sum(unlist(frequent.itemset)))
 
-  #frequent.itemset <- compare.frequent.itemset(D1=df,D2=synthetic.data,pMinSupport=0.23,top=20)
-  #cur.results <- append(cur.results,as.vector(unlist(frequent.itemset)))
-  #cur.results <- append(cur.results,frequent.itemset[[1]]/sum(unlist(frequent.itemset)))
+    #per state and hour
+    state.hour.stats <- compare.statistics.by.attribute(t1=df,t2=synthetic.data,relevant.col.names=c("objectid","state_id","timestamp","seq_id"),by.col.names=c("state_id","factor"),factor.calculation="format(as.POSIXlt(timestamp), \"%H\")",seq_id.col.name="seq_id",objectid.col.name="objectid")
+    cur.results <- append(cur.results,as.vector(unlist(state.hour.stats)))
 
-  #per state and hour
-  state.hour.stats <- compare.statistics.by.attribute(t1=df,t2=synthetic.data,relevant.col.names=c("objectid","state_id","timestamp","seq_id"),by.col.names=c("state_id","factor"),factor.calculation="format(as.POSIXlt(timestamp), \"%H\")",seq_id.col.name="seq_id",objectid.col.name="objectid")
-  cur.results <- append(cur.results,as.vector(unlist(state.hour.stats)))
+    #per state and weekday
+    state.weekday.stats <- compare.statistics.by.attribute(df,synthetic.data,relevant.col.names=c("objectid","state_id","timestamp","seq_id"),by.col.names=c("state_id","factor"),factor.calculation="format(as.POSIXlt(timestamp), \"%w\")",seq_id.col.name="seq_id",objectid.col.name="objectid")
+    cur.results <- append(cur.results,as.vector(unlist(state.weekday.stats)))
 
-  #per state and weekday
-  state.weekday.stats <- compare.statistics.by.attribute(df,synthetic.data,relevant.col.names=c("objectid","state_id","timestamp","seq_id"),by.col.names=c("state_id","factor"),factor.calculation="format(as.POSIXlt(timestamp), \"%w\")",seq_id.col.name="seq_id",objectid.col.name="objectid")
-  cur.results <- append(cur.results,as.vector(unlist(state.weekday.stats)))
+    #per hour factor
+    hour.stats <- compare.statistics.by.attribute(df,synthetic.data,relevant.col.names=c("objectid","timestamp","seq_id"),by.col.names=c("factor"),factor.calculation="format(as.POSIXlt(timestamp), \"%H\")",seq_id.col.name="seq_id",objectid.col.name="objectid")
+    cur.results <- append(cur.results,as.vector(unlist(hour.stats)))
 
-  #per hour factor
-  hour.stats <- compare.statistics.by.attribute(df,synthetic.data,relevant.col.names=c("objectid","timestamp","seq_id"),by.col.names=c("factor"),factor.calculation="format(as.POSIXlt(timestamp), \"%H\")",seq_id.col.name="seq_id",objectid.col.name="objectid")
-  cur.results <- append(cur.results,as.vector(unlist(hour.stats)))
+    #per weekday factor
+    weekday.stats <- compare.statistics.by.attribute(df,synthetic.data,relevant.col.names=c("objectid","timestamp","seq_id"),by.col.names=c("factor"),factor.calculation="format(as.POSIXlt(timestamp), \"%w\")",seq_id.col.name="seq_id",objectid.col.name="objectid")
+    cur.results <- append(cur.results,as.vector(unlist(weekday.stats)))
 
-  #per weekday factor
-  weekday.stats <- compare.statistics.by.attribute(df,synthetic.data,relevant.col.names=c("objectid","timestamp","seq_id"),by.col.names=c("factor"),factor.calculation="format(as.POSIXlt(timestamp), \"%w\")",seq_id.col.name="seq_id",objectid.col.name="objectid")
-  cur.results <- append(cur.results,as.vector(unlist(weekday.stats)))
+    #per state
+    state.stats <- compare.statistics.by.attribute(df,synthetic.data,relevant.col.names=c("objectid","state_id","timestamp","seq_id"),by.col.names=c("state_id"),factor.calculation=NA,seq_id.col.name="seq_id",objectid.col.name="objectid")
+    cur.results <- append(cur.results,as.vector(unlist(state.stats)))
 
-  #per state
-  state.stats <- compare.statistics.by.attribute(df,synthetic.data,relevant.col.names=c("objectid","state_id","timestamp","seq_id"),by.col.names=c("state_id"),factor.calculation=NA,seq_id.col.name="seq_id",objectid.col.name="objectid")
-  cur.results <- append(cur.results,as.vector(unlist(state.stats)))
+    #per date
+    date.stats <- compare.statistics.by.attribute(df,synthetic.data,relevant.col.names=c("objectid","timestamp","seq_id"),by.col.names=c("factor"),factor.calculation="format(as.POSIXlt(timestamp), \"%D\")",seq_id.col.name="seq_id",objectid.col.name="objectid")
+    cur.results <- append(cur.results,as.vector(unlist(date.stats)))
 
-  #per date
-  date.stats <- compare.statistics.by.attribute(df,synthetic.data,relevant.col.names=c("objectid","timestamp","seq_id"),by.col.names=c("factor"),factor.calculation="format(as.POSIXlt(timestamp), \"%D\")",seq_id.col.name="seq_id",objectid.col.name="objectid")
-  cur.results <- append(cur.results,as.vector(unlist(date.stats)))
+  } else{
+    cur.results <- append(cur.results,rep(NA,39))
+  }
 
 
   #pdf(paste0(experiment.name,'.pdf'))

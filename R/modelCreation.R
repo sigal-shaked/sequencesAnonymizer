@@ -4,10 +4,14 @@ require(smoothmest)
 differential.privacy<- function(data,epsilon,by.col.names,within.col.names,statistics.calculations,statistics.col.names){
   origin_size <- dim(data)[1]
   new.data<- dplyr::mutate(data,differ=(total.x/total.y)/((total.x-1)/(total.y-1)))
-  new.data[is.na(new.data$"differ"),"differ"]<- 1/0
-  removed<- dplyr::filter(new.data , differ>exp(epsilon) | 1/differ>exp(epsilon))
-  new.data<- dplyr::filter(new.data , differ<=exp(epsilon) , 1/differ<=exp(epsilon))
-  if (!is.null((epsilon))){
+  if(!is.null(new.data)){
+    if(length(new.data[is.na(new.data$"differ"),"differ"])[1]>0){
+      new.data[is.na(new.data$"differ"),"differ"]<- 1/0
+    }
+  }
+  removed<- dplyr::filter(new.data , differ>exp(epsilon))# | 1/differ>exp(epsilon))
+  new.data<- dplyr::filter(new.data , differ<=exp(epsilon))# , 1/differ<=exp(epsilon))
+  if (!is.null(epsilon)){
     while (nrow(removed)>0 & nrow(new.data)>0){
       removed.sum <- dplyr::group_by_(removed,.dots=c(by.col.names))
       removed.sum <- dplyr::summarise(removed.sum,total.y=sum(total.x))
@@ -44,40 +48,52 @@ differential.privacy<- function(data,epsilon,by.col.names,within.col.names,stati
 
 calc.single.model<- function(clustered.data,relevant.col.names,factor.calculation=NA,by.col.names,within.col.names,statistics.calculations,statistics.col.names,eps = NULL){
   d <- clustered.data
-  d <- dplyr::select_(d,.dots=relevant.col.names)
-  if(!is.na(factor.calculation)){
-    d<- dplyr::mutate_(d,factor = factor.calculation)
-  }
-
-  d.level1 <- dplyr::group_by_(d,.dots=c(by.col.names,within.col.names))
-  d.level1 <- dplyr::summarise_(d.level1,.dots= statistics.calculations)
-  names(d.level1)<- c(by.col.names,within.col.names,statistics.col.names)
-
-  if(length(within.col.names)>0){
-    d.level0 <- dplyr::group_by_(d,.dots=by.col.names)
-    d.level0 <- dplyr::summarise_(d.level0,.dots= statistics.calculations)
-    names(d.level0)<- c(by.col.names,statistics.col.names)
-  }else{
-    d.level0 <- dplyr::group_by_(d,.dots=c())
-    d.level0 <- dplyr::summarise_(d.level0,.dots= statistics.calculations)
-    names(d.level0)<- c(statistics.col.names)
-  }
-  #d.level0 <- dplyr::summarise_(d.level0,.dots= statistics.calculations)
-  #names(d.level0)<- c(by.col.names,statistics.col.names)
-  if(is.null(by.col.names) | is.null(within.col.names)){
-    d <- merge(d.level1, d.level0,by=NULL)
+  if(dim(d)[1]==0){
+    if(length(within.col.names)>0){
+      col.names<-c(by.col.names,within.col.names,statistics.col.names,"total_numeric")
+    } else{
+      col.names<-c(by.col.names,statistics.col.names,"total_numeric")
+    }
+    d <- matrix(data = NA, nrow = 0, ncol = length(col.names))
+    colnames(d)<- col.names
+    list(stats=NULL,supressed = 0)
   } else{
-    d <- dplyr::inner_join(d.level1, d.level0, by = by.col.names)
-  }
-  d[is.na(d)] <- 0
-  if(!is.null(within.col.names)){
-    differential.privacy(data=d,epsilon=eps,by.col.names,within.col.names,statistics.calculations,statistics.col.names)
-  } else{
+    d <- dplyr::select_(d,.dots=relevant.col.names)
+    if(!is.na(factor.calculation)){
+      d<- dplyr::mutate_(d,factor = factor.calculation)
+    }
+
+    d.level1 <- dplyr::group_by_(d,.dots=c(by.col.names,within.col.names))
+    d.level1 <- dplyr::summarise_(d.level1,.dots= statistics.calculations)
+    names(d.level1)<- c(by.col.names,within.col.names,statistics.col.names)
+
+    if(length(within.col.names)>0){
+      d.level0 <- dplyr::group_by_(d,.dots=by.col.names)
+      d.level0 <- dplyr::summarise_(d.level0,.dots= statistics.calculations)
+      names(d.level0)<- c(by.col.names,statistics.col.names)
+    }else{
+      d.level0 <- dplyr::group_by_(d,.dots=c())
+      d.level0 <- dplyr::summarise_(d.level0,.dots= statistics.calculations)
+      names(d.level0)<- c(statistics.col.names)
+    }
+    #d.level0 <- dplyr::summarise_(d.level0,.dots= statistics.calculations)
+    #names(d.level0)<- c(by.col.names,statistics.col.names)
+    if(is.null(by.col.names) | is.null(within.col.names)){
+      d <- merge(d.level1, d.level0,by=NULL)
+    } else{
+      d <- dplyr::inner_join(d.level1, d.level0, by = by.col.names)
+    }
+    d[is.na(d)] <- 0
+    if(!is.null(within.col.names)){
+      differential.privacy(data=d,epsilon=eps,by.col.names,within.col.names,statistics.calculations,statistics.col.names)
+    } else{
       names(d)[names(d) %in% paste(statistics.col.names,".x",sep="")]<- statistics.col.names
       d <- dplyr::select_(d ,.dots=c(by.col.names,within.col.names,statistics.col.names))
       d[is.na(d)] <- 0
       list(stats=d,supressed = 0)
+    }
   }
+
 }
 
 #   for (cur in statistics.col.names){
@@ -126,11 +142,16 @@ calc.single.model<- function(clustered.data,relevant.col.names,factor.calculatio
 #}
 
 to.valid.matrix<- function(data){
-  if(dim(data)[1]==1){
-    tmp<-matrix(unlist(data),nrow=1)
-    colnames(tmp)<- names(data)
-  } else{
-    tmp<- as.matrix(data)
+  tmp<-data
+  if(!is.null(data)){
+    if(is.vector(data)){
+      tmp<-matrix(unlist(data),nrow=1)
+      colnames(tmp)<- names(data)
+    } else{
+      # if(dim(data)[1]>0){
+      tmp<- as.matrix(data)
+      #  }
+    }
   }
   tmp
 }
@@ -187,8 +208,8 @@ build.model <- function(clustered.data,c_eps)
   #supression_log <- matrix(data=NA,nrow=0,ncol=2)
   #colnames(supression_log) = c("model","supressed_amount")
 
-  new.objects.per.date<-calc.single.model(clustered.data=start.of.obj,relevant.col.names=c("objectid","num.seq","cluster_id","timestamp","seq_duration"),factor.calculation="as.Date(as.POSIXlt(timestamp))",by.col.names = c("cluster_id","factor","seq_duration"),within.col.names=c(),statistics.calculations =c("n_distinct(objectid)","mean(num.seq)","sd(num.seq)"),statistics.col.names=c("objects","mean.num.seq","sd.num.seq"))
-  names(new.objects.per.date)[names(new.objects.per.date)=="factor"]<-"date"
+  #new.objects.per.date<-calc.single.model(clustered.data=start.of.obj,relevant.col.names=c("objectid","num.seq","cluster_id","timestamp","seq_duration"),factor.calculation="as.Date(as.POSIXlt(timestamp))",by.col.names = c("cluster_id","factor","seq_duration"),within.col.names=c(),statistics.calculations =c("n_distinct(objectid)","mean(num.seq)","sd(num.seq)"),statistics.col.names=c("objects","mean.num.seq","sd.num.seq"))
+  #names(new.objects.per.date)[names(new.objects.per.date)=="factor"]<-"date"
 
   #factor.week.start.cluster
   #cur.model<-calc.single.model(clustered.data=start.of.obj,relevant.col.names=c("objectid","seq_id","cluster_id","timestamp"),factor.calculation="as.integer(ceiling(as.POSIXlt(timestamp)$yday/4))",by.col.names = c("cluster_id","factor"),within.col.names=c(),statistics.calculations =c("n_distinct(seq_id)","n_distinct(objectid)","n()"),statistics.col.names=c("sequences","objects","total"),eps=c_eps)
