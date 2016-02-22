@@ -70,6 +70,7 @@ run.single.experiment <- function(experiment.name,d,objectid.pos,timestamp.pos,s
   #####model creation
   model<-build.model(clustered.data=df.clustered,c_eps=p_eps)
   model.size <- sum(unlist(lapply(model,nrow)))
+  states<- length(unique(model$nocluster.nofactor.starting.state[,"state_id"]))
   supressed_pct<- sum(as.numeric(model$supression_log[,2]))/(model.size+sum(as.numeric(model$supression_log[,2]))-nrow(model$supression_log))
   min_support<-min(unlist(lapply(model,FUN=function(x){if( "total_numeric" %in% colnames(x)&& dim(x)[1]>0 ){min(x[,"total_numeric"],na.rm = T)}})))
   mean_support<-mean(unlist(lapply(model,FUN=function(x){if( "total_numeric" %in% colnames(x)&& dim(x)[1]>0 ){min(x[,"total_numeric"],na.rm = T)}})))
@@ -79,7 +80,7 @@ run.single.experiment <- function(experiment.name,d,objectid.pos,timestamp.pos,s
   rm(df.clustered)
   create.model.time <- as.numeric(unlist((proc.time() - ptm)[3]))
   cur.results <- append(cur.results,c(create.model.time,model.size))
-  cur.results <- append(cur.results,c(supressed_pct,min_support,mean_support,stdev_support,max_support))
+  cur.results <- append(cur.results,c(states,supressed_pct,min_support,mean_support,stdev_support,max_support))
 
   inverse_method=T
   ptm <- proc.time()
@@ -87,8 +88,6 @@ run.single.experiment <- function(experiment.name,d,objectid.pos,timestamp.pos,s
   output.file.name <- paste0(experiment.name,'.csv')
   #registerDoParallel(detectCores())
   synthetic.data <- generate.synthetic.data(m=model,p.method=inverse_method)
-  synthetic.data <- as.data.frame(synthetic.data,stringsAsFactors = F)
-  synthetic.data$state_id  <- as.numeric(synthetic.data$state_id)
   rm(model)
   #registerDoSEQ()
   ###write.table(synthetic.data, file = output.file.name, append = F, sep = ",",row.names = F,col.names = T)
@@ -106,6 +105,8 @@ run.single.experiment <- function(experiment.name,d,objectid.pos,timestamp.pos,s
 
   #####compare datsets
   if(ns.records>0){
+    synthetic.data <- as.data.frame(synthetic.data,stringsAsFactors = F)
+    synthetic.data$state_id  <- as.numeric(synthetic.data$state_id)
     dist.lsh <- mean.seq.dist.lsh(df,synthetic.data,shingle.size=1,num.hashes=200)
     cur.results <- append(cur.results,dist.lsh)
 

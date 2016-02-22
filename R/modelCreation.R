@@ -96,50 +96,7 @@ calc.single.model<- function(clustered.data,relevant.col.names,factor.calculatio
 
 }
 
-#   for (cur in statistics.col.names){
-#     #if (cur %in% c("sequences","total")){
-#     if (cur == "total"){
-#       cur.y<- paste(cur,".y",sep="")
-#     }
-#     else{
-#       cur.y<- 1
-#     }
-#     cur.x<- paste(cur,".x",sep="")
-#     d<-dplyr::mutate_(d,.dots=paste(cur.x,"/",cur.y,sep=""))
-#     names(d)[dim(d)[2]]<- cur
-#     if (cur =="total"){
-#       d<-dplyr::mutate_(d,.dots=paste("(",cur.x,"-",1,")","/","(",cur.y,"-",1,")",sep=""))
-#       names(d)[dim(d)[2]]<- c("total_without")
-#       d<-dplyr::mutate_(d,.dots=paste("(","total.x","/","total.y",")","/", "total_without",sep=""))
-#       names(d)[dim(d)[2]]<- "differ"
-#       d[is.na(d$total_without),"differ"]<- 1/0
-#     }
-#   }
-#   origin_size <- dim(d)[1]
-#   if (!is.null((eps))){
-#     #ddoublex(x=0,mu=0,lambda=10)
-#     d<- dplyr::filter(d , differ<=exp(eps))#/min_length.x)
-#     #Recalculate "total" by normalizing it (for possible changes after supression)
-#     norm.level1 <- dplyr::group_by_(d,.dots=c(by.col.names,within.col.names))
-#     norm.level1 <- dplyr::summarise(norm.level1,sum(total))
-#     norm.level0 <- dplyr::group_by_(d,.dots=by.col.names)
-#     norm.level0 <- dplyr::summarise(norm.level0,sum(total))
-#     if(is.null(by.col.names)){
-#       norm.merged <- merge(norm.level1, norm.level0,by=NULL)
-#     } else{
-#       norm.merged <- dplyr::inner_join(norm.level1, norm.level0, by = by.col.names)
-#     }
-#     norm.merged <- cbind(norm.merged,norm.total=norm.merged$"sum(total).x"/norm.merged$"sum(total).y")
-#
-#     d<- dplyr::inner_join(d, norm.merged[,c(by.col.names,within.col.names,"norm.total")], by = c(by.col.names,within.col.names))
-#     d$total <- d$norm.total
-#     d<- d[1:(dim(d)[2]-1)]
-#     d[is.na(d)] <- 0
-#   }
-#   d <- dplyr::select_(d ,.dots=c(by.col.names,within.col.names,statistics.col.names))
-#   d <- replace(d, is.na(d), 0)
-#   list(stats=d,supressed = (origin_size-dim(d)[1]))#/origin_size)
-#}
+
 
 to.valid.matrix<- function(data){
   tmp<-data
@@ -211,29 +168,30 @@ build.model <- function(clustered.data,c_eps)
   #new.objects.per.date<-calc.single.model(clustered.data=start.of.obj,relevant.col.names=c("objectid","num.seq","cluster_id","timestamp","seq_duration"),factor.calculation="as.Date(as.POSIXlt(timestamp))",by.col.names = c("cluster_id","factor","seq_duration"),within.col.names=c(),statistics.calculations =c("n_distinct(objectid)","mean(num.seq)","sd(num.seq)"),statistics.col.names=c("objects","mean.num.seq","sd.num.seq"))
   #names(new.objects.per.date)[names(new.objects.per.date)=="factor"]<-"date"
 
-  #factor.week.start.cluster
-  #cur.model<-calc.single.model(clustered.data=start.of.obj,relevant.col.names=c("objectid","seq_id","cluster_id","timestamp"),factor.calculation="as.integer(ceiling(as.POSIXlt(timestamp)$yday/4))",by.col.names = c("cluster_id","factor"),within.col.names=c(),statistics.calculations =c("n_distinct(seq_id)","n_distinct(objectid)","n()"),statistics.col.names=c("sequences","objects","total"),eps=c_eps)
-  cur.model<-calc.single.model(clustered.data=start.of.obj,relevant.col.names=c("objectid","seq_id","cluster_id","timestamp"),factor.calculation="as.numeric(format(as.POSIXlt(timestamp), \"%w\"))",by.col.names = c("factor"),within.col.names=c("cluster_id"),statistics.calculations =c("n_distinct(seq_id)","n_distinct(objectid)","n()"),statistics.col.names=c("sequences","objects","total"),eps=c_eps)
-  factor.1.start.cluster <- to.valid.matrix(cur.model$stats)
-  supression_log <- c(model="factor.1.start.cluster",supressed_amount=cur.model$supressed)
-  #factor.month.start.cluster
-  cur.model<-calc.single.model(clustered.data=start.of.obj,relevant.col.names=c("objectid","seq_id","cluster_id","timestamp"),factor.calculation="as.POSIXlt(timestamp)$mon",by.col.names = c("factor"),within.col.names=c("cluster_id"),statistics.calculations =c("n_distinct(seq_id)","n_distinct(objectid)","n()"),statistics.col.names=c("sequences","objects","total"),eps=c_eps)
-  factor.2.start.cluster <- to.valid.matrix(cur.model$stats)
-  supression_log <- rbind(supression_log,c(model="factor.2.start.cluster",supressed_amount=cur.model$supressed))
-  #factor.year.start.cluster
-  cur.model<-calc.single.model(clustered.data=start.of.obj,relevant.col.names=c("objectid","seq_id","cluster_id","timestamp"),factor.calculation="as.POSIXlt(timestamp)$year",by.col.names = c("factor"),within.col.names=c("cluster_id"),statistics.calculations =c("n_distinct(seq_id)","n_distinct(objectid)","n()"),statistics.col.names=c("sequences","objects","total"),eps=c_eps)
-  factor.3.start.cluster <- to.valid.matrix(cur.model$stats)
-  supression_log <- rbind(supression_log,c(model="factor.3.start.cluster",supressed_amount=cur.model$supressed))
-  #nofactor.start.cluster
-  cur.model<-calc.single.model(clustered.data=start.of.obj,relevant.col.names=c("objectid","seq_id","cluster_id","timestamp"),factor.calculation=NA,by.col.names = c(),within.col.names=c("cluster_id"),statistics.calculations =c("n_distinct(seq_id)","n_distinct(objectid)","n()"),statistics.col.names=c("sequences","objects","total"),eps=c_eps)
-  nofactor.start.cluster <- to.valid.matrix(cur.model$stats)
-  supression_log <- rbind(supression_log,c(model="nofactor.start.cluster",supressed_amount=cur.model$supressed))
-
-
   start.of.seq <- dplyr::group_by(sequences,seq_id)
   ######
   start.of.seq <- dplyr::filter(start.of.seq, timestamp == first(timestamp),row_number()==1)
-  #Calculates mean sequqence length
+
+  #factor.week.start.cluster
+  #cur.model<-calc.single.model(clustered.data=start.of.obj,relevant.col.names=c("objectid","seq_id","cluster_id","timestamp"),factor.calculation="as.integer(ceiling(as.POSIXlt(timestamp)$yday/4))",by.col.names = c("cluster_id","factor"),within.col.names=c(),statistics.calculations =c("n_distinct(seq_id)","n_distinct(objectid)","n()"),statistics.col.names=c("sequences","objects","total"),eps=c_eps)
+  cur.model<-calc.single.model(clustered.data=start.of.seq,relevant.col.names=c("objectid","seq_id","cluster_id","timestamp"),factor.calculation="as.numeric(format(as.POSIXlt(timestamp), \"%w\"))",by.col.names = c("factor"),within.col.names=c("cluster_id"),statistics.calculations =c("n_distinct(seq_id)","n_distinct(objectid)","n()"),statistics.col.names=c("sequences","objects","total"),eps=c_eps)
+  factor.1.start.cluster <- to.valid.matrix(cur.model$stats)
+  supression_log <- c(model="factor.1.start.cluster",supressed_amount=cur.model$supressed)
+  #factor.month.start.cluster
+  cur.model<-calc.single.model(clustered.data=start.of.seq,relevant.col.names=c("objectid","seq_id","cluster_id","timestamp"),factor.calculation="as.POSIXlt(timestamp)$mon",by.col.names = c("factor"),within.col.names=c("cluster_id"),statistics.calculations =c("n_distinct(seq_id)","n_distinct(objectid)","n()"),statistics.col.names=c("sequences","objects","total"),eps=c_eps)
+  factor.2.start.cluster <- to.valid.matrix(cur.model$stats)
+  supression_log <- rbind(supression_log,c(model="factor.2.start.cluster",supressed_amount=cur.model$supressed))
+  #factor.year.start.cluster
+  cur.model<-calc.single.model(clustered.data=start.of.seq,relevant.col.names=c("objectid","seq_id","cluster_id","timestamp"),factor.calculation="as.POSIXlt(timestamp)$year",by.col.names = c("factor"),within.col.names=c("cluster_id"),statistics.calculations =c("n_distinct(seq_id)","n_distinct(objectid)","n()"),statistics.col.names=c("sequences","objects","total"),eps=c_eps)
+  factor.3.start.cluster <- to.valid.matrix(cur.model$stats)
+  supression_log <- rbind(supression_log,c(model="factor.3.start.cluster",supressed_amount=cur.model$supressed))
+  #nofactor.start.cluster
+  cur.model<-calc.single.model(clustered.data=start.of.seq,relevant.col.names=c("objectid","seq_id","cluster_id","timestamp"),factor.calculation=NA,by.col.names = c(),within.col.names=c("cluster_id"),statistics.calculations =c("n_distinct(seq_id)","n_distinct(objectid)","n()"),statistics.col.names=c("sequences","objects","total"),eps=c_eps)
+  nofactor.start.cluster <- to.valid.matrix(cur.model$stats)
+   supression_log <- rbind(supression_log,c(model="nofactor.start.cluster",supressed_amount=cur.model$supressed))
+
+
+   #Calculates mean sequqence length
   mean.seq_duration <- dplyr::group_by(start.of.seq,seq_duration)
   mean.seq_duration <- dplyr::summarize(mean.seq_duration, mean = mean(seq_duration_numeric),sd=sd(seq_duration_numeric),freq=n())
   mean.seq_duration<- dplyr::ungroup(mean.seq_duration)
@@ -280,41 +238,41 @@ build.model <- function(clustered.data,c_eps)
   supression_log <- rbind(supression_log,c(model="nocluster.nofactor.start_info",supressed_amount=cur.model$supressed))
 
   #factor.dur.starting.state
-  cur.model<-calc.single.model(clustered.data=start.of.seq,relevant.col.names=c("objectid","seq_id","cluster_id","timestamp","state_id","seq_duration"),factor.calculation="seq_duration",by.col.names = c("cluster_id","factor"),within.col.names=c("state_id"),statistics.calculations =c("n_distinct(seq_id)","n_distinct(objectid)","n()"),statistics.col.names=c("sequences","objects","total"),eps=c_eps)
+  cur.model<-calc.single.model(clustered.data=sequences,relevant.col.names=c("objectid","seq_id","cluster_id","timestamp","state_id","seq_duration"),factor.calculation="seq_duration",by.col.names = c("cluster_id","factor"),within.col.names=c("state_id"),statistics.calculations =c("n_distinct(seq_id)","n_distinct(objectid)","n()"),statistics.col.names=c("sequences","objects","total"),eps=c_eps)
   factor.1.starting.state <- to.valid.matrix(cur.model$stats)
   supression_log <- rbind(supression_log,c(model="factor.1.starting.state",supressed_amount=cur.model$supressed))
 
   #factor.hour.starting.state
-  cur.model<-calc.single.model(clustered.data=start.of.seq,relevant.col.names=c("objectid","seq_id","cluster_id","timestamp","state_id"),factor.calculation="as.numeric(format(as.POSIXlt(timestamp), \"%H\"))",by.col.names = c("cluster_id","factor"),within.col.names=c("state_id"),statistics.calculations =c("n_distinct(seq_id)","n_distinct(objectid)","n()"),statistics.col.names=c("sequences","objects","total"),eps=c_eps)
+  cur.model<-calc.single.model(clustered.data=sequences,relevant.col.names=c("objectid","seq_id","cluster_id","timestamp","state_id"),factor.calculation="as.numeric(format(as.POSIXlt(timestamp), \"%H\"))",by.col.names = c("cluster_id","factor"),within.col.names=c("state_id"),statistics.calculations =c("n_distinct(seq_id)","n_distinct(objectid)","n()"),statistics.col.names=c("sequences","objects","total"),eps=c_eps)
   factor.2.starting.state <- to.valid.matrix(cur.model$stats)
   supression_log <- rbind(supression_log,c(model="factor.2.starting.state",supressed_amount=cur.model$supressed))
 
   #factor.weekday.starting.state
-  cur.model<-calc.single.model(clustered.data=start.of.seq,relevant.col.names=c("objectid","seq_id","cluster_id","timestamp","state_id"),factor.calculation="as.numeric(format(as.POSIXlt(timestamp), \"%w\"))",by.col.names = c("cluster_id","factor"),within.col.names=c("state_id"),statistics.calculations =c("n_distinct(seq_id)","n_distinct(objectid)","n()"),statistics.col.names=c("sequences","objects","total"),eps=c_eps)
+  cur.model<-calc.single.model(clustered.data=sequences,relevant.col.names=c("objectid","seq_id","cluster_id","timestamp","state_id"),factor.calculation="as.numeric(format(as.POSIXlt(timestamp), \"%w\"))",by.col.names = c("cluster_id","factor"),within.col.names=c("state_id"),statistics.calculations =c("n_distinct(seq_id)","n_distinct(objectid)","n()"),statistics.col.names=c("sequences","objects","total"),eps=c_eps)
   factor.3.starting.state <- to.valid.matrix(cur.model$stats)
   supression_log <- rbind(supression_log,c(model="factor.3.starting.state",supressed_amount=cur.model$supressed))
 
   #nofactor.starting.state
-  cur.model<-calc.single.model(clustered.data=start.of.seq,relevant.col.names=c("objectid","seq_id","cluster_id","timestamp","state_id"),factor.calculation=NA,by.col.names = c("cluster_id"),within.col.names=c("state_id"),statistics.calculations =c("n_distinct(seq_id)","n_distinct(objectid)","n()"),statistics.col.names=c("sequences","objects","total"),eps=c_eps)
+  cur.model<-calc.single.model(clustered.data=sequences,relevant.col.names=c("objectid","seq_id","cluster_id","timestamp","state_id"),factor.calculation=NA,by.col.names = c("cluster_id"),within.col.names=c("state_id"),statistics.calculations =c("n_distinct(seq_id)","n_distinct(objectid)","n()"),statistics.col.names=c("sequences","objects","total"),eps=c_eps)
   nofactor.starting.state <- to.valid.matrix(cur.model$stats)
   supression_log <- rbind(supression_log,c(model="nofactor.starting.state",supressed_amount=cur.model$supressed))
   #nocluster.factor.dur.starting.state
-  cur.model<-calc.single.model(clustered.data=start.of.seq,relevant.col.names=c("objectid","seq_id","timestamp","state_id","seq_duration"),factor.calculation="seq_duration",by.col.names = c("factor"),within.col.names=c("state_id"),statistics.calculations =c("n_distinct(seq_id)","n_distinct(objectid)","n()"),statistics.col.names=c("sequences","objects","total"),eps=c_eps)
+  cur.model<-calc.single.model(clustered.data=sequences,relevant.col.names=c("objectid","seq_id","timestamp","state_id","seq_duration"),factor.calculation="seq_duration",by.col.names = c("factor"),within.col.names=c("state_id"),statistics.calculations =c("n_distinct(seq_id)","n_distinct(objectid)","n()"),statistics.col.names=c("sequences","objects","total"),eps=c_eps)
   nocluster.factor.1.starting.state <- to.valid.matrix(cur.model$stats)
   supression_log <- rbind(supression_log,c(model="nocluster.factor.1.starting.state",supressed_amount=cur.model$supressed))
 
   #nocluster.factor.hour.starting.state
-  cur.model<-calc.single.model(clustered.data=start.of.seq,relevant.col.names=c("objectid","seq_id","timestamp","state_id"),factor.calculation="as.numeric(format(as.POSIXlt(timestamp), \"%H\"))",by.col.names = c("factor"),within.col.names=c("state_id"),statistics.calculations =c("n_distinct(seq_id)","n_distinct(objectid)","n()"),statistics.col.names=c("sequences","objects","total"),eps=c_eps)
+  cur.model<-calc.single.model(clustered.data=sequences,relevant.col.names=c("objectid","seq_id","timestamp","state_id"),factor.calculation="as.numeric(format(as.POSIXlt(timestamp), \"%H\"))",by.col.names = c("factor"),within.col.names=c("state_id"),statistics.calculations =c("n_distinct(seq_id)","n_distinct(objectid)","n()"),statistics.col.names=c("sequences","objects","total"),eps=c_eps)
   nocluster.factor.2.starting.state <- to.valid.matrix(cur.model$stats)
   supression_log <- rbind(supression_log,c(model="nocluster.factor.2.starting.state",supressed_amount=cur.model$supressed))
 
   #nocluster.factor.weekday.starting.state
-  cur.model<-calc.single.model(clustered.data=start.of.seq,relevant.col.names=c("objectid","seq_id","timestamp","state_id"),factor.calculation="as.numeric(format(as.POSIXlt(timestamp), \"%w\"))",by.col.names = c("factor"),within.col.names=c("state_id"),statistics.calculations =c("n_distinct(seq_id)","n_distinct(objectid)","n()"),statistics.col.names=c("sequences","objects","total"),eps=c_eps)
+  cur.model<-calc.single.model(clustered.data=sequences,relevant.col.names=c("objectid","seq_id","timestamp","state_id"),factor.calculation="as.numeric(format(as.POSIXlt(timestamp), \"%w\"))",by.col.names = c("factor"),within.col.names=c("state_id"),statistics.calculations =c("n_distinct(seq_id)","n_distinct(objectid)","n()"),statistics.col.names=c("sequences","objects","total"),eps=c_eps)
   nocluster.factor.3.starting.state <- to.valid.matrix(cur.model$stats)
   supression_log <- rbind(supression_log,c(model="nocluster.factor.3.starting.state",supressed_amount=cur.model$supressed))
 
   #nocluster.nofactor.starting.state
-  cur.model<-calc.single.model(clustered.data=start.of.seq,relevant.col.names=c("objectid","seq_id","timestamp","state_id"),factor.calculation=NA,by.col.names=c(),within.col.names=c("state_id"),statistics.calculations =c("n_distinct(seq_id)","n_distinct(objectid)","n()"),statistics.col.names=c("sequences","objects","total"),eps=c_eps)
+  cur.model<-calc.single.model(clustered.data=sequences,relevant.col.names=c("objectid","seq_id","timestamp","state_id"),factor.calculation=NA,by.col.names=c(),within.col.names=c("state_id"),statistics.calculations =c("n_distinct(seq_id)","n_distinct(objectid)","n()"),statistics.col.names=c("sequences","objects","total"),eps=c_eps)
   nocluster.nofactor.starting.state <- to.valid.matrix(cur.model$stats)
   supression_log <- rbind(supression_log,c(model="nocluster.nofactor.starting.state",supressed_amount=cur.model$supressed))
 

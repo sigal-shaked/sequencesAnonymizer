@@ -87,4 +87,3 @@ calc.seq.obj <- function(d)
   #list(seq.idx,d.seq)
   list(TraMineR::seqeid(d.seqe),d.seq)
 }
-

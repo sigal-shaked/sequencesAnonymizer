@@ -424,9 +424,10 @@ generate.synthetic.data <- function(m,p.method){
     if(is.null(cur.bulk) || dim(cur.bulk)[1]==0){
       cur.bulk<-c("*","*","*","*")
       dim(cur.bulk)<-c(1,4)
-      colnames(cur.bulk)<-c("objectid","seq_id","timestamp","state_id")
+      #colnames(cur.bulk)<-c("objectid","seq_id","timestamp","state_id")
       cur.bulk<- to.valid.matrix(cur.bulk)
     }
+    colnames(cur.bulk)<-c("objectid","seq_id","timestamp","state_id")
     cur.bulk
   }
 
