@@ -196,7 +196,9 @@ build.model <- function(clustered.data,c_eps)
   mean.seq_duration <- dplyr::summarize(mean.seq_duration, mean = mean(seq_duration_numeric),sd=sd(seq_duration_numeric),freq=n())
   mean.seq_duration<- dplyr::ungroup(mean.seq_duration)
   mean.seq_duration$freq <-mean.seq_duration$freq/sum(mean.seq_duration$freq)
-  mean.seq_duration[is.na(mean.seq_duration$sd),"sd"]<- 0
+  if(!is.null(mean.seq_duration) && sum(is.na(mean.seq_duration$sd))>0 ){
+      mean.seq_duration[is.na(mean.seq_duration$sd),"sd"]<- 0
+  }
   mean.start_hour <- dplyr::group_by(start.of.seq,hour)
   mean.start_hour <- dplyr::summarize(mean.start_hour, freq=n())
   mean.start_hour<- dplyr::ungroup(mean.start_hour)
