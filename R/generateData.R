@@ -33,280 +33,280 @@ to.valid.matrix<- function(data){
       tmp<-matrix(unlist(data),nrow=1)
       colnames(tmp)<- names(data)
     } else{
-     # if(dim(data)[1]>0){
-        tmp<- as.matrix(data)
-    #  }
+      # if(dim(data)[1]>0){
+      tmp<- as.matrix(data)
+      #  }
     }
   }
   tmp
 }
 
-R_sample_start_info<- function(m,factor.1,factor.2,factor.3,method,p_cluster_id=NULL){
+# R_sample_start_info<- function(m,factor.1,factor.2,factor.3,method,p_cluster_id=NULL){
+#
+#   if( !is.null(p_cluster_id)){
+#     cur.nofactor.start_info<- to.valid.matrix(dplyr::filter(as.data.frame(m$nofactor.start_info),cluster_id==p_cluster_id)[,c(2,3,6,7,8)])
+#   #if(dim(cur.nofactor.start_info)[1]>0 & !is.null(p_cluster_id)){
+#     cur.factor.1.start_info<- to.valid.matrix(dplyr::filter(as.data.frame(m$factor.1.start_info),cluster_id==p_cluster_id,factor==factor.1)[,c(3,4,7,8,9,10)])
+#     cur.factor.2.start_info<- to.valid.matrix(dplyr::filter(as.data.frame(m$factor.2.start_info),cluster_id==p_cluster_id,factor==factor.2)[,c(3,4,7,8,9,10)])
+#     cur.factor.3.start_info<- to.valid.matrix(dplyr::filter(as.data.frame(m$factor.3.start_info),cluster_id==p_cluster_id,factor==factor.3)[,c(3,4,7,8,9,10)])
+#     cur.m1<- ifelse(dim(cur.factor.1.start_info)[1]>0,sum(cur.factor.1.start_info[,6]),0)
+#     cur.m2<- ifelse(dim(cur.factor.2.start_info)[1]>0,sum(cur.factor.2.start_info[,6]),0)
+#     cur.m3<- ifelse(dim(cur.factor.3.start_info)[1]>0,sum(cur.factor.3.start_info[,6]),0)
+#
+#     c.w<- build_vector_of_sizes(m1_size=cur.m1,
+#                                 m2_size=cur.m2,
+#                                 m3_size=cur.m3,
+#                                 is_inverse=method)
+#
+#     cur.start.info <- sample_start_info(
+#       m1=to.valid.matrix(cur.factor.1.start_info[,-6]),
+#       m2=to.valid.matrix(cur.factor.2.start_info[,-6]),
+#       m3=to.valid.matrix(cur.factor.3.start_info[,-6]),
+#       m4=cur.nofactor.start_info,
+#       w=c.w)
+#   } else{
+#     cur.nocluster.nofactor.start_info<- to.valid.matrix(m$nocluster.nofactor.start_info[,c(1,2,5,6,7)])
+#     if(dim(cur.nocluster.nofactor.start_info)[1]>0){
+#       cur.nocluster.factor.1.start_info<- to.valid.matrix(dplyr::filter(as.data.frame(m$nocluster.factor.1.start_info),factor==factor.1)[,c(2,3,6,7,8,9)])
+#       cur.nocluster.factor.2.start_info<- to.valid.matrix(dplyr::filter(as.data.frame(m$nocluster.factor.2.start_info),factor==factor.2)[,c(2,3,6,7,8,9)])
+#       cur.nocluster.factor.3.start_info<- to.valid.matrix(dplyr::filter(as.data.frame(m$nocluster.factor.3.start_info),factor==factor.3)[,c(2,3,6,7,8,9)])
+#       cur.m1<- ifelse(dim(cur.nocluster.factor.1.start_info)[1]>0,sum(cur.nocluster.factor.1.start_info[,6]),0)
+#       cur.m2<- ifelse(dim(cur.nocluster.factor.2.start_info)[1]>0,sum(cur.nocluster.factor.2.start_info[,6]),0)
+#       cur.m3<- ifelse(dim(cur.nocluster.factor.3.start_info)[1]>0,sum(cur.nocluster.factor.3.start_info[,6]),0)
+#
+#       c.w<- build_vector_of_sizes(m1_size=cur.m1,
+#                                   m2_size=cur.m2,
+#                                   m3_size=cur.m3,
+#                                   is_inverse=method)
+#
+#       cur.start.info <- sample_start_info(
+#         m1=to.valid.matrix(cur.nocluster.factor.1.start_info[,-6]),
+#         m2=to.valid.matrix(cur.nocluster.factor.2.start_info[,-6]),
+#         m3=to.valid.matrix(cur.nocluster.factor.3.start_info[,-6]),
+#         m4=cur.nocluster.nofactor.start_info,
+#         w=c.w)
+#     } else{
+#       if(dim(m$mean.seq_duration)[1]>0){
+#         cur.index<- sample(1:dim(m$mean.seq_duration)[1],1,prob=m$mean.seq_duration$freq)
+#         cur.numeric_duration <- rnorm(1,mean = unlist(m$mean.seq_duration[cur.index,"mean"]),sd = unlist(m$mean.seq_duration[cur.index,"sd"]))
+#         cur.seq_duration <-m$mean.seq_duration[cur.index,"seq_duration"]
+#       } else{
+#         cur.numeric_duration <- rnorm(1,mean = m$mean.seq_duration[2],sd = m$mean.seq_duration[3])
+#         cur.seq_duration <- m$mean.seq_duration[1]
+#       }
+#       if(dim(m$mean.start_hour)[1]>1){
+#         cur.hour<- sample(m$mean.start_hour$hour,size=1,prob=m$mean.start_hour$freq)
+#       } else if(dim(m$mean.start_hour)[1]==0){
+#         cur.hour<- m$mean.start_hour[1]
+#       } else{
+#         cur.hour<- m$mean.start_hour$hour
+#       }
+#       cur.start.info <- c(cur.hour,cur.seq_duration,cur.numeric_duration)
+#     }
+#   }
+#   cur.start.info
+# }
 
-  if( !is.null(p_cluster_id)){
-    cur.nofactor.start_info<- to.valid.matrix(dplyr::filter(as.data.frame(m$nofactor.start_info),cluster_id==p_cluster_id)[,c(2,3,6,7,8)])
-  #if(dim(cur.nofactor.start_info)[1]>0 & !is.null(p_cluster_id)){
-    cur.factor.1.start_info<- to.valid.matrix(dplyr::filter(as.data.frame(m$factor.1.start_info),cluster_id==p_cluster_id,factor==factor.1)[,c(3,4,7,8,9,10)])
-    cur.factor.2.start_info<- to.valid.matrix(dplyr::filter(as.data.frame(m$factor.2.start_info),cluster_id==p_cluster_id,factor==factor.2)[,c(3,4,7,8,9,10)])
-    cur.factor.3.start_info<- to.valid.matrix(dplyr::filter(as.data.frame(m$factor.3.start_info),cluster_id==p_cluster_id,factor==factor.3)[,c(3,4,7,8,9,10)])
-    cur.m1<- ifelse(dim(cur.factor.1.start_info)[1]>0,sum(cur.factor.1.start_info[,6]),0)
-    cur.m2<- ifelse(dim(cur.factor.2.start_info)[1]>0,sum(cur.factor.2.start_info[,6]),0)
-    cur.m3<- ifelse(dim(cur.factor.3.start_info)[1]>0,sum(cur.factor.3.start_info[,6]),0)
+# R_sample_cluster<- function(m,factor.1,factor.2,factor.3,method,prev_id=NULL){
+#
+#   #first cluster
+#   if(is.null(prev_id)){
+#     cur.nofactor.start.cluster<- to.valid.matrix(as.data.frame(m$nofactor.start.cluster)[,c(1,4)])
+#     cur.factor.1.start.cluster<- to.valid.matrix(dplyr::filter(as.data.frame(m$factor.1.start.cluster),factor==factor.1)[,c(1,5,6)])
+#     cur.factor.2.start.cluster<- to.valid.matrix(dplyr::filter(as.data.frame(m$factor.2.start.cluster),factor==factor.2)[,c(1,5,6)])
+#     cur.factor.3.start.cluster<- to.valid.matrix(dplyr::filter(as.data.frame(m$factor.3.start.cluster),factor==factor.3)[,c(1,5,6)])
+#     cur.m1<- ifelse(dim(cur.factor.1.start.cluster)[1]>0,sum(cur.factor.1.start.cluster[,3]),0)
+#     cur.m2<- ifelse(dim(cur.factor.2.start.cluster)[1]>0,sum(cur.factor.2.start.cluster[,3]),0)
+#     cur.m3<- ifelse(dim(cur.factor.3.start.cluster)[1]>0,sum(cur.factor.3.start.cluster[,3]),0)
+#
+#     c.w<- build_vector_of_sizes(m1_size=cur.m1,
+#                                 m2_size=cur.m2,
+#                                 m3_size=cur.m3,
+#                                 is_inverse=method)
+#
+#
+#     if(dim(cur.nofactor.start.cluster)[1]>0){
+#       cur.sampled.cluster <- sample_starting_state(
+#         m1=to.valid.matrix(cur.factor.1.start.cluster[,-3]),
+#         m2=to.valid.matrix(cur.factor.2.start.cluster[,-3]),
+#         m3=to.valid.matrix(cur.factor.3.start.cluster[,-3]),
+#         m4=cur.nofactor.start.cluster,
+#         w=c.w)
+#     } else{
+#       if (dim(m$common_clusters)[1]>0){
+#         cur.sampled.cluster <- sample(unlist(unique(m$common_clusters[,1])),size=1)
+#       } else{
+#         cur.sampled.cluster <- NA
+#       }
+#     }
+#   } else{
+#     cur.nofactor.cluster.transition<- to.valid.matrix(dplyr::filter(as.data.frame(m$nofactor.cluster.transition),cluster_id==prev_id)[,c(2,5,6,7)])
+#     cur.factor.1.cluster.transition<- to.valid.matrix(dplyr::filter(as.data.frame(m$factor.1.cluster.transition),factor==factor.1,cluster_id==prev_id)[,c(3,6,7,8,9)])
+#     cur.factor.2.cluster.transition<- to.valid.matrix(dplyr::filter(as.data.frame(m$factor.2.cluster.transition),factor==factor.2,cluster_id==prev_id)[,c(3,6,7,8,9)])
+#     cur.factor.3.cluster.transition<- to.valid.matrix(dplyr::filter(as.data.frame(m$factor.3.cluster.transition),factor==factor.3,cluster_id==prev_id)[,c(3,6,7,8,9)])
+#     cur.m1<- ifelse(dim(cur.factor.1.cluster.transition)[1]>0,sum(cur.factor.1.cluster.transition[,5]),0)
+#     cur.m2<- ifelse(dim(cur.factor.2.cluster.transition)[1]>0,sum(cur.factor.2.cluster.transition[,5]),0)
+#     cur.m3<- ifelse(dim(cur.factor.3.cluster.transition)[1]>0,sum(cur.factor.3.cluster.transition[,5]),0)
+#
+#     c.w<- build_vector_of_sizes(m1_size=cur.m1,
+#                                 m2_size=cur.m2,
+#                                 m3_size=cur.m3,
+#                                 is_inverse=method)
+#     if(dim(cur.nofactor.cluster.transition)[1]>0){
+#       cur.sampled.cluster <- sample_transition(
+#         m1=to.valid.matrix(cur.factor.1.cluster.transition[,-5]),
+#         m2=to.valid.matrix(cur.factor.2.cluster.transition[,-5]),
+#         m3=to.valid.matrix(cur.factor.3.cluster.transition[,-5]),
+#         m4=cur.nofactor.cluster.transition,
+#         w=c.w)
+#     } else{
+#       c_cluster_id = NA
+#       cur.near <- dplyr::filter(
+#         as.data.frame(to.valid.matrix(m$common_clusters)),"cluster_id.x" ==prev_id)[,c(2,5)]
+#
+#       if(dim(cur.near)[1]>1){
+#         c_cluster_id <- sample(as.character(cur.near[,1]),size=1,prob=as.numeric(cur.near[,2]))
+#       } else if(dim(cur.near)[1]==1){
+#         c_cluster_id <-as.character(cur.near[1])
+#       }
+#       # if (!is.na(c_cluster_id)){
+#       if (!is.null(prev_id)){
+#         cur.sampled.cluster <- c(c_cluster_id,as.numeric(m$mean.cluster.tbe))
+#       }
+#       else{
+#         cur.sampled.cluster <- c(c_cluster_id)
+#       }
+#       # }
+#     }
+#   }
+#   cur.sampled.cluster
+# }
 
-    c.w<- build_vector_of_sizes(m1_size=cur.m1,
-                                m2_size=cur.m2,
-                                m3_size=cur.m3,
-                                is_inverse=method)
-
-    cur.start.info <- sample_start_info(
-      m1=to.valid.matrix(cur.factor.1.start_info[,-6]),
-      m2=to.valid.matrix(cur.factor.2.start_info[,-6]),
-      m3=to.valid.matrix(cur.factor.3.start_info[,-6]),
-      m4=cur.nofactor.start_info,
-      w=c.w)
-  } else{
-    cur.nocluster.nofactor.start_info<- to.valid.matrix(m$nocluster.nofactor.start_info[,c(1,2,5,6,7)])
-    if(dim(cur.nocluster.nofactor.start_info)[1]>0){
-      cur.nocluster.factor.1.start_info<- to.valid.matrix(dplyr::filter(as.data.frame(m$nocluster.factor.1.start_info),factor==factor.1)[,c(2,3,6,7,8,9)])
-      cur.nocluster.factor.2.start_info<- to.valid.matrix(dplyr::filter(as.data.frame(m$nocluster.factor.2.start_info),factor==factor.2)[,c(2,3,6,7,8,9)])
-      cur.nocluster.factor.3.start_info<- to.valid.matrix(dplyr::filter(as.data.frame(m$nocluster.factor.3.start_info),factor==factor.3)[,c(2,3,6,7,8,9)])
-      cur.m1<- ifelse(dim(cur.nocluster.factor.1.start_info)[1]>0,sum(cur.nocluster.factor.1.start_info[,6]),0)
-      cur.m2<- ifelse(dim(cur.nocluster.factor.2.start_info)[1]>0,sum(cur.nocluster.factor.2.start_info[,6]),0)
-      cur.m3<- ifelse(dim(cur.nocluster.factor.3.start_info)[1]>0,sum(cur.nocluster.factor.3.start_info[,6]),0)
-
-      c.w<- build_vector_of_sizes(m1_size=cur.m1,
-                                  m2_size=cur.m2,
-                                  m3_size=cur.m3,
-                                  is_inverse=method)
-
-      cur.start.info <- sample_start_info(
-        m1=to.valid.matrix(cur.nocluster.factor.1.start_info[,-6]),
-        m2=to.valid.matrix(cur.nocluster.factor.2.start_info[,-6]),
-        m3=to.valid.matrix(cur.nocluster.factor.3.start_info[,-6]),
-        m4=cur.nocluster.nofactor.start_info,
-        w=c.w)
-    } else{
-      if(dim(m$mean.seq_duration)[1]>0){
-        cur.index<- sample(1:dim(m$mean.seq_duration)[1],1,prob=m$mean.seq_duration$freq)
-        cur.numeric_duration <- rnorm(1,mean = unlist(m$mean.seq_duration[cur.index,"mean"]),sd = unlist(m$mean.seq_duration[cur.index,"sd"]))
-        cur.seq_duration <-m$mean.seq_duration[cur.index,"seq_duration"]
-      } else{
-        cur.numeric_duration <- rnorm(1,mean = m$mean.seq_duration[2],sd = m$mean.seq_duration[3])
-        cur.seq_duration <- m$mean.seq_duration[1]
-      }
-      if(dim(m$mean.start_hour)[1]>1){
-        cur.hour<- sample(m$mean.start_hour$hour,size=1,prob=m$mean.start_hour$freq)
-      } else if(dim(m$mean.start_hour)[1]==0){
-        cur.hour<- m$mean.start_hour[1]
-      } else{
-        cur.hour<- m$mean.start_hour$hour
-      }
-      cur.start.info <- c(cur.hour,cur.seq_duration,cur.numeric_duration)
-    }
-  }
-  cur.start.info
-}
-
-R_sample_cluster<- function(m,factor.1,factor.2,factor.3,method,prev_id=NULL){
-
-  #first cluster
-  if(is.null(prev_id)){
-    cur.nofactor.start.cluster<- to.valid.matrix(as.data.frame(m$nofactor.start.cluster)[,c(1,4)])
-    cur.factor.1.start.cluster<- to.valid.matrix(dplyr::filter(as.data.frame(m$factor.1.start.cluster),factor==factor.1)[,c(1,5,6)])
-    cur.factor.2.start.cluster<- to.valid.matrix(dplyr::filter(as.data.frame(m$factor.2.start.cluster),factor==factor.2)[,c(1,5,6)])
-    cur.factor.3.start.cluster<- to.valid.matrix(dplyr::filter(as.data.frame(m$factor.3.start.cluster),factor==factor.3)[,c(1,5,6)])
-    cur.m1<- ifelse(dim(cur.factor.1.start.cluster)[1]>0,sum(cur.factor.1.start.cluster[,3]),0)
-    cur.m2<- ifelse(dim(cur.factor.2.start.cluster)[1]>0,sum(cur.factor.2.start.cluster[,3]),0)
-    cur.m3<- ifelse(dim(cur.factor.3.start.cluster)[1]>0,sum(cur.factor.3.start.cluster[,3]),0)
-
-    c.w<- build_vector_of_sizes(m1_size=cur.m1,
-                                m2_size=cur.m2,
-                                m3_size=cur.m3,
-                                is_inverse=method)
-
-
-    if(dim(cur.nofactor.start.cluster)[1]>0){
-      cur.sampled.cluster <- sample_starting_state(
-        m1=to.valid.matrix(cur.factor.1.start.cluster[,-3]),
-        m2=to.valid.matrix(cur.factor.2.start.cluster[,-3]),
-        m3=to.valid.matrix(cur.factor.3.start.cluster[,-3]),
-        m4=cur.nofactor.start.cluster,
-        w=c.w)
-    } else{
-      if (dim(m$common_clusters)[1]>0){
-        cur.sampled.cluster <- sample(unlist(unique(m$common_clusters[,1])),size=1)
-      } else{
-        cur.sampled.cluster <- NA
-      }
-    }
-  } else{
-    cur.nofactor.cluster.transition<- to.valid.matrix(dplyr::filter(as.data.frame(m$nofactor.cluster.transition),cluster_id==prev_id)[,c(2,5,6,7)])
-    cur.factor.1.cluster.transition<- to.valid.matrix(dplyr::filter(as.data.frame(m$factor.1.cluster.transition),factor==factor.1,cluster_id==prev_id)[,c(3,6,7,8,9)])
-    cur.factor.2.cluster.transition<- to.valid.matrix(dplyr::filter(as.data.frame(m$factor.2.cluster.transition),factor==factor.2,cluster_id==prev_id)[,c(3,6,7,8,9)])
-    cur.factor.3.cluster.transition<- to.valid.matrix(dplyr::filter(as.data.frame(m$factor.3.cluster.transition),factor==factor.3,cluster_id==prev_id)[,c(3,6,7,8,9)])
-    cur.m1<- ifelse(dim(cur.factor.1.cluster.transition)[1]>0,sum(cur.factor.1.cluster.transition[,5]),0)
-    cur.m2<- ifelse(dim(cur.factor.2.cluster.transition)[1]>0,sum(cur.factor.2.cluster.transition[,5]),0)
-    cur.m3<- ifelse(dim(cur.factor.3.cluster.transition)[1]>0,sum(cur.factor.3.cluster.transition[,5]),0)
-
-    c.w<- build_vector_of_sizes(m1_size=cur.m1,
-                                m2_size=cur.m2,
-                                m3_size=cur.m3,
-                                is_inverse=method)
-    if(dim(cur.nofactor.cluster.transition)[1]>0){
-      cur.sampled.cluster <- sample_transition(
-        m1=to.valid.matrix(cur.factor.1.cluster.transition[,-5]),
-        m2=to.valid.matrix(cur.factor.2.cluster.transition[,-5]),
-        m3=to.valid.matrix(cur.factor.3.cluster.transition[,-5]),
-        m4=cur.nofactor.cluster.transition,
-        w=c.w)
-    } else{
-      c_cluster_id = NA
-      cur.near <- dplyr::filter(
-        as.data.frame(to.valid.matrix(m$common_clusters)),"cluster_id.x" ==prev_id)[,c(2,5)]
-
-      if(dim(cur.near)[1]>1){
-        c_cluster_id <- sample(as.character(cur.near[,1]),size=1,prob=as.numeric(cur.near[,2]))
-      } else if(dim(cur.near)[1]==1){
-        c_cluster_id <-as.character(cur.near[1])
-      }
-     # if (!is.na(c_cluster_id)){
-        if (!is.null(prev_id)){
-          cur.sampled.cluster <- c(c_cluster_id,as.numeric(m$mean.cluster.tbe))
-        }
-        else{
-          cur.sampled.cluster <- c(c_cluster_id)
-        }
-     # }
-    }
-  }
-  cur.sampled.cluster
-}
-
-R_sample_state<- function(m,p_cluster_id,factor.1,factor.2,factor.3,method,prev_id=NULL){
-  #first state
-  if(is.null(prev_id)){
-    if(is.null(p_cluster_id)){
-      cur.nofactor.starting.state<- to.valid.matrix(dplyr::filter(as.data.frame(m$nofactor.starting.state),cluster_id==p_cluster_id)[,c(2,5)])
-    #if(dim(cur.nofactor.starting.state)[1]>0 & !is.null(p_cluster_id)){
-      cur.factor.1.starting.state<- to.valid.matrix(dplyr::filter(as.data.frame(m$factor.1.starting.state),cluster_id==p_cluster_id,factor==factor.1)[,c(3,6,7)])
-      cur.factor.2.starting.state<- to.valid.matrix(dplyr::filter(as.data.frame(m$factor.2.starting.state),cluster_id==p_cluster_id,factor==factor.2)[,c(3,6,7)])
-      cur.factor.3.starting.state<- to.valid.matrix(dplyr::filter(as.data.frame(m$factor.3.starting.state),cluster_id==p_cluster_id,factor==factor.3)[,c(3,6,7)])
-      cur.m1<- ifelse(dim(cur.factor.1.starting.state)[1]>0,sum(cur.factor.1.starting.state[,3]),0)
-      cur.m2<- ifelse(dim(cur.factor.2.starting.state)[1]>0,sum(cur.factor.2.starting.state[,3]),0)
-      cur.m3<- ifelse(dim(cur.factor.3.starting.state)[1]>0,sum(cur.factor.3.starting.state[,3]),0)
-
-      c.w<- build_vector_of_sizes(m1_size=cur.m1,
-                                  m2_size=cur.m2,
-                                  m3_size=cur.m3,
-                                  is_inverse=method)
-
-      cur.state <- sample_starting_state(
-        m1=to.valid.matrix(cur.factor.1.starting.state[,-3]),
-        m2=to.valid.matrix(cur.factor.2.starting.state[,-3]),
-        m3=to.valid.matrix(cur.factor.3.starting.state[,-3]),
-        m4=cur.nofactor.starting.state,
-        w=c.w)
-    #}
-    } else{
-      cur.nocluster.nofactor.starting.state<- to.valid.matrix(as.data.frame(m$nocluster.nofactor.starting.state[,c(1,4)]))
-      if(dim(cur.nocluster.nofactor.starting.state)[1]>0){
-        cur.nocluster.factor.1.starting.state<- to.valid.matrix(dplyr::filter(as.data.frame(m$nocluster.factor.1.starting.state),factor==factor.1)[,c(2,5,6)])
-        cur.nocluster.factor.2.starting.state<- to.valid.matrix(dplyr::filter(as.data.frame(m$nocluster.factor.2.starting.state),factor==factor.2)[,c(2,5,6)])
-        cur.nocluster.factor.3.starting.state<- to.valid.matrix(dplyr::filter(as.data.frame(m$nocluster.factor.3.starting.state),factor==factor.3)[,c(2,5,6)])
-        cur.m1<- ifelse(dim(cur.nocluster.factor.1.starting.state)[1]>0,sum(cur.nocluster.factor.1.starting.state[,3]),0)
-        cur.m2<- ifelse(dim(cur.nocluster.factor.2.starting.state)[1]>0,sum(cur.nocluster.factor.2.starting.state[,3]),0)
-        cur.m3<- ifelse(dim(cur.nocluster.factor.3.starting.state)[1]>0,sum(cur.nocluster.factor.3.starting.state[,3]),0)
-
-        c.w<- build_vector_of_sizes(m1_size=cur.m1,
-                                    m2_size=cur.m2,
-                                    m3_size=cur.m3,
-                                    is_inverse=method)
-
-        cur.state <- sample_starting_state(
-          m1=to.valid.matrix(cur.nocluster.factor.1.starting.state[,-3]),
-          m2=to.valid.matrix(cur.nocluster.factor.2.starting.state[,-3]),
-          m3=to.valid.matrix(cur.nocluster.factor.3.starting.state[,-3]),
-          m4=cur.nocluster.nofactor.starting.state,
-          w=c.w)
-      } else if(dim(m$common_states)[1]>0){
-          cur.state <-sample(unlist(unique(m$common_states[,1])),1)
-      } else{
-          cur.state <- -1
-        }
-    }
-    #not the starting state
-  } else {
-    if( !is.null(p_cluster_id)){
-      cur.nofactor.transition<- to.valid.matrix((dplyr::filter(as.data.frame(m$nofactor.transition),cluster_id==p_cluster_id,state_id==prev_id))[,c(3,6,7,8)])
-    #if(dim(cur.nofactor.transition)[1]>0 & !is.null(p_cluster_id)){
-      cur.factor.1.transition<- to.valid.matrix(dplyr::filter(as.data.frame(m$factor.1.transition),cluster_id==p_cluster_id,factor==factor.1,state_id==prev_id)[,c(4,7,8,9,10)])
-      cur.factor.2.transition<- to.valid.matrix(dplyr::filter(as.data.frame(m$factor.2.transition),cluster_id==p_cluster_id,factor==factor.2,state_id==prev_id)[,c(4,7,8,9,10)])
-      cur.factor.3.transition<- to.valid.matrix(dplyr::filter(as.data.frame(m$factor.3.transition),cluster_id==p_cluster_id,factor==factor.3,state_id==prev_id)[,c(4,7,8,9,10)])
-      cur.m1<- ifelse(dim(cur.factor.1.transition)[1]>0,sum(cur.factor.1.transition[,5]),0)
-      cur.m2<- ifelse(dim(cur.factor.2.transition)[1]>0,sum(cur.factor.2.transition[,5]),0)
-      cur.m3<- ifelse(dim(cur.factor.3.transition)[1]>0,sum(cur.factor.3.transition[,5]),0)
-
-      c.w<- build_vector_of_sizes(m1_size=cur.m1,
-                                  m2_size=cur.m2,
-                                  m3_size=cur.m3,
-                                  is_inverse=method)
-
-      cur.state <- sample_transition(
-        m1=to.valid.matrix(cur.factor.1.transition[,-5]),
-        m2=to.valid.matrix(cur.factor.2.transition[,-5]),
-        m3=to.valid.matrix(cur.factor.3.transition[,-5]),
-        m4=cur.nofactor.transition,
-        w=c.w)
-    } else{
-      cur.nocluster.nofactor.transition<- to.valid.matrix(dplyr::filter(as.data.frame(m$nocluster.nofactor.transition),state_id==prev_id)[,c(2,5,6,7)])
-      if(dim(cur.nocluster.nofactor.transition)[1]>0){
-        cur.nocluster.factor.1.transition<- to.valid.matrix(dplyr::filter(as.data.frame(m$nocluster.factor.1.transition),factor==factor.1,state_id==prev_id)[,c(3,6,7,8,9)])
-        cur.nocluster.factor.2.transition<- to.valid.matrix(dplyr::filter(as.data.frame(m$nocluster.factor.2.transition),factor==factor.2,state_id==prev_id)[,c(3,6,7,8,9)])
-        cur.nocluster.factor.3.transition<- to.valid.matrix(dplyr::filter(as.data.frame(m$nocluster.factor.3.transition),factor==factor.3,state_id==prev_id)[,c(3,6,7,8,9)])
-        cur.m1<- ifelse(nrow(cur.nocluster.factor.1.transition)>0,sum(cur.nocluster.factor.1.transition[,5]),0)
-        cur.m2<- ifelse(nrow(cur.nocluster.factor.2.transition)>0,sum(cur.nocluster.factor.2.transition[,5]),0)
-        cur.m3<- ifelse(nrow(cur.nocluster.factor.3.transition)>0,sum(cur.nocluster.factor.3.transition[,5]),0)
-
-        c.w<- build_vector_of_sizes(m1_size=cur.m1,
-                                    m2_size=cur.m2,
-                                    m3_size=cur.m3,
-                                    is_inverse=method)
-
-        cur.state <- sample_transition(
-          m1=to.valid.matrix(cur.nocluster.factor.1.transition[,-5]),
-          m2=to.valid.matrix(cur.nocluster.factor.2.transition[,-5]),
-          m3=to.valid.matrix(cur.nocluster.factor.3.transition[,-5]),
-          m4=cur.nocluster.nofactor.transition,
-          w=c.w)
-      } else{cur.state<-c(-1,0)}
-    }
-  }
-  if(cur.state[1]==-1){
-    c.state_id <- -1
-    cur.near <- dplyr::filter(as.data.frame(to.valid.matrix(m$common_states)),"state_id.x" ==prev_id)[,c(2,5)]
-    if(dim(cur.near)[1]>1){
-      c.state_id <- sample(cur.near[,1],size=1,prob=cur.near[,2])
-    } else if(dim(cur.near)[1]==1){
-      c.state_id<-cur.near[1]
-    }
-    if (c.state_id!=-1){
-      cur.tbe<-NULL
-      if (!is.null(prev_id)){
-        cur.sampled.tbe<- dplyr::filter(as.data.frame(m$mean.transition.tbe),cluster_id==p_cluster_id)[2]
-        if(nrow(cur.sampled.tbe)==0){
-          cur.tbe<- mean(m$mean.transition.tbe[,2])
-        } else if(nrow(cur.sampled.tbe)==1){
-          cur.tbe<-cur.sampled.tbe
-        }
-        cur.state <- c(c.state_id,as.numeric(cur.tbe))
-      }
-      else{
-        cur.state <- c(c.state_id)
-      }
-    }
-  }
-  cur.state
-}
+# R_sample_state<- function(m,p_cluster_id,factor.1,factor.2,factor.3,method,prev_id=NULL){
+#   #first state
+#   if(is.null(prev_id)){
+#     if(is.null(p_cluster_id)){
+#       cur.nofactor.starting.state<- to.valid.matrix(dplyr::filter(as.data.frame(m$nofactor.starting.state),cluster_id==p_cluster_id)[,c(2,5)])
+#       #if(dim(cur.nofactor.starting.state)[1]>0 & !is.null(p_cluster_id)){
+#       cur.factor.1.starting.state<- to.valid.matrix(dplyr::filter(as.data.frame(m$factor.1.starting.state),cluster_id==p_cluster_id,factor==factor.1)[,c(3,6,7)])
+#       cur.factor.2.starting.state<- to.valid.matrix(dplyr::filter(as.data.frame(m$factor.2.starting.state),cluster_id==p_cluster_id,factor==factor.2)[,c(3,6,7)])
+#       cur.factor.3.starting.state<- to.valid.matrix(dplyr::filter(as.data.frame(m$factor.3.starting.state),cluster_id==p_cluster_id,factor==factor.3)[,c(3,6,7)])
+#       cur.m1<- ifelse(dim(cur.factor.1.starting.state)[1]>0,sum(cur.factor.1.starting.state[,3]),0)
+#       cur.m2<- ifelse(dim(cur.factor.2.starting.state)[1]>0,sum(cur.factor.2.starting.state[,3]),0)
+#       cur.m3<- ifelse(dim(cur.factor.3.starting.state)[1]>0,sum(cur.factor.3.starting.state[,3]),0)
+#
+#       c.w<- build_vector_of_sizes(m1_size=cur.m1,
+#                                   m2_size=cur.m2,
+#                                   m3_size=cur.m3,
+#                                   is_inverse=method)
+#
+#       cur.state <- sample_starting_state(
+#         m1=to.valid.matrix(cur.factor.1.starting.state[,-3]),
+#         m2=to.valid.matrix(cur.factor.2.starting.state[,-3]),
+#         m3=to.valid.matrix(cur.factor.3.starting.state[,-3]),
+#         m4=cur.nofactor.starting.state,
+#         w=c.w)
+#       #}
+#     } else{
+#       cur.nocluster.nofactor.starting.state<- to.valid.matrix(as.data.frame(m$nocluster.nofactor.starting.state[,c(1,4)]))
+#       if(dim(cur.nocluster.nofactor.starting.state)[1]>0){
+#         cur.nocluster.factor.1.starting.state<- to.valid.matrix(dplyr::filter(as.data.frame(m$nocluster.factor.1.starting.state),factor==factor.1)[,c(2,5,6)])
+#         cur.nocluster.factor.2.starting.state<- to.valid.matrix(dplyr::filter(as.data.frame(m$nocluster.factor.2.starting.state),factor==factor.2)[,c(2,5,6)])
+#         cur.nocluster.factor.3.starting.state<- to.valid.matrix(dplyr::filter(as.data.frame(m$nocluster.factor.3.starting.state),factor==factor.3)[,c(2,5,6)])
+#         cur.m1<- ifelse(dim(cur.nocluster.factor.1.starting.state)[1]>0,sum(cur.nocluster.factor.1.starting.state[,3]),0)
+#         cur.m2<- ifelse(dim(cur.nocluster.factor.2.starting.state)[1]>0,sum(cur.nocluster.factor.2.starting.state[,3]),0)
+#         cur.m3<- ifelse(dim(cur.nocluster.factor.3.starting.state)[1]>0,sum(cur.nocluster.factor.3.starting.state[,3]),0)
+#
+#         c.w<- build_vector_of_sizes(m1_size=cur.m1,
+#                                     m2_size=cur.m2,
+#                                     m3_size=cur.m3,
+#                                     is_inverse=method)
+#
+#         cur.state <- sample_starting_state(
+#           m1=to.valid.matrix(cur.nocluster.factor.1.starting.state[,-3]),
+#           m2=to.valid.matrix(cur.nocluster.factor.2.starting.state[,-3]),
+#           m3=to.valid.matrix(cur.nocluster.factor.3.starting.state[,-3]),
+#           m4=cur.nocluster.nofactor.starting.state,
+#           w=c.w)
+#       } else if(dim(m$common_states)[1]>0){
+#         cur.state <-sample(unlist(unique(m$common_states[,1])),1)
+#       } else{
+#         cur.state <- -1
+#       }
+#     }
+#     #not the starting state
+#   } else {
+#     if( !is.null(p_cluster_id)){
+#       cur.nofactor.transition<- to.valid.matrix((dplyr::filter(as.data.frame(m$nofactor.transition),cluster_id==p_cluster_id,state_id==prev_id))[,c(3,6,7,8)])
+#       #if(dim(cur.nofactor.transition)[1]>0 & !is.null(p_cluster_id)){
+#       cur.factor.1.transition<- to.valid.matrix(dplyr::filter(as.data.frame(m$factor.1.transition),cluster_id==p_cluster_id,factor==factor.1,state_id==prev_id)[,c(4,7,8,9,10)])
+#       cur.factor.2.transition<- to.valid.matrix(dplyr::filter(as.data.frame(m$factor.2.transition),cluster_id==p_cluster_id,factor==factor.2,state_id==prev_id)[,c(4,7,8,9,10)])
+#       cur.factor.3.transition<- to.valid.matrix(dplyr::filter(as.data.frame(m$factor.3.transition),cluster_id==p_cluster_id,factor==factor.3,state_id==prev_id)[,c(4,7,8,9,10)])
+#       cur.m1<- ifelse(dim(cur.factor.1.transition)[1]>0,sum(cur.factor.1.transition[,5]),0)
+#       cur.m2<- ifelse(dim(cur.factor.2.transition)[1]>0,sum(cur.factor.2.transition[,5]),0)
+#       cur.m3<- ifelse(dim(cur.factor.3.transition)[1]>0,sum(cur.factor.3.transition[,5]),0)
+#
+#       c.w<- build_vector_of_sizes(m1_size=cur.m1,
+#                                   m2_size=cur.m2,
+#                                   m3_size=cur.m3,
+#                                   is_inverse=method)
+#
+#       cur.state <- sample_transition(
+#         m1=to.valid.matrix(cur.factor.1.transition[,-5]),
+#         m2=to.valid.matrix(cur.factor.2.transition[,-5]),
+#         m3=to.valid.matrix(cur.factor.3.transition[,-5]),
+#         m4=cur.nofactor.transition,
+#         w=c.w)
+#     } else{
+#       cur.nocluster.nofactor.transition<- to.valid.matrix(dplyr::filter(as.data.frame(m$nocluster.nofactor.transition),state_id==prev_id)[,c(2,5,6,7)])
+#       if(dim(cur.nocluster.nofactor.transition)[1]>0){
+#         cur.nocluster.factor.1.transition<- to.valid.matrix(dplyr::filter(as.data.frame(m$nocluster.factor.1.transition),factor==factor.1,state_id==prev_id)[,c(3,6,7,8,9)])
+#         cur.nocluster.factor.2.transition<- to.valid.matrix(dplyr::filter(as.data.frame(m$nocluster.factor.2.transition),factor==factor.2,state_id==prev_id)[,c(3,6,7,8,9)])
+#         cur.nocluster.factor.3.transition<- to.valid.matrix(dplyr::filter(as.data.frame(m$nocluster.factor.3.transition),factor==factor.3,state_id==prev_id)[,c(3,6,7,8,9)])
+#         cur.m1<- ifelse(nrow(cur.nocluster.factor.1.transition)>0,sum(cur.nocluster.factor.1.transition[,5]),0)
+#         cur.m2<- ifelse(nrow(cur.nocluster.factor.2.transition)>0,sum(cur.nocluster.factor.2.transition[,5]),0)
+#         cur.m3<- ifelse(nrow(cur.nocluster.factor.3.transition)>0,sum(cur.nocluster.factor.3.transition[,5]),0)
+#
+#         c.w<- build_vector_of_sizes(m1_size=cur.m1,
+#                                     m2_size=cur.m2,
+#                                     m3_size=cur.m3,
+#                                     is_inverse=method)
+#
+#         cur.state <- sample_transition(
+#           m1=to.valid.matrix(cur.nocluster.factor.1.transition[,-5]),
+#           m2=to.valid.matrix(cur.nocluster.factor.2.transition[,-5]),
+#           m3=to.valid.matrix(cur.nocluster.factor.3.transition[,-5]),
+#           m4=cur.nocluster.nofactor.transition,
+#           w=c.w)
+#       } else{cur.state<-c(-1,0)}
+#     }
+#   }
+#   if(cur.state[1]==-1){
+#     c.state_id <- -1
+#     cur.near <- dplyr::filter(as.data.frame(to.valid.matrix(m$common_states)),"state_id.x" ==prev_id)[,c(2,5)]
+#     if(dim(cur.near)[1]>1){
+#       c.state_id <- sample(cur.near[,1],size=1,prob=cur.near[,2])
+#     } else if(dim(cur.near)[1]==1){
+#       c.state_id<-cur.near[1]
+#     }
+#     if (c.state_id!=-1){
+#       cur.tbe<-NULL
+#       if (!is.null(prev_id)){
+#         cur.sampled.tbe<- dplyr::filter(as.data.frame(m$mean.transition.tbe),cluster_id==p_cluster_id)[2]
+#         if(nrow(cur.sampled.tbe)==0){
+#           cur.tbe<- mean(m$mean.transition.tbe[,2])
+#         } else if(nrow(cur.sampled.tbe)==1){
+#           cur.tbe<-cur.sampled.tbe
+#         }
+#         cur.state <- c(c.state_id,as.numeric(cur.tbe))
+#       }
+#       else{
+#         cur.state <- c(c.state_id)
+#       }
+#     }
+#   }
+#   cur.state
+# }
 
 sample.sequence.chain<- function(m,p_objID,p_seqID,p_cluster_id,p_seq_duration,p_start_time,p_end_time,p_method){
   #seq_duration
@@ -318,15 +318,18 @@ sample.sequence.chain<- function(m,p_objID,p_seqID,p_cluster_id,p_seq_duration,p
   cur.timestamp <- p_start_time
   cur.state <- R_sample_state(m,p_cluster_id=p_cluster_id,factor.1=cur.factor.1,factor.2=cur.factor.2,factor.3=cur.factor.3,method=p_method)
   cur.sequence <- NULL
-  if(cur.state!=-1){
+  if(!is.null(cur.state) && cur.state!=-1){
     cur.sequence <- as.matrix(c(p_objID,p_seqID,as.character(cur.timestamp),cur.state))
     dim(cur.sequence)<-c(1,4)
     names(cur.sequence)<-c("objectid","seq_id","timestamp","state_id")
     cur.sequence<- to.valid.matrix(cur.sequence)
 
-    while(cur.timestamp<=p_end_time){
+    while(cur.timestamp<=p_end_time & (!is.null(cur.state) && cur.state!=-1)){
       cur.transition <- R_sample_state(m,p_cluster_id=p_cluster_id,factor.1=cur.factor.1,factor.2=cur.factor.2,factor.3=cur.factor.3,method=p_method,prev_id=cur.state)
       cur.state <- cur.transition[1]
+      if(is.na(cur.state)){
+        break
+      }
       if(cur.state==-1){
         break
       }
@@ -460,7 +463,7 @@ generate.synthetic.data <- function(m,p.method){
 }
 
 
-sample.by.ensemble<- function(m1,m2,m3,m4,p_func){
+sample.by.ensemble<- function(m1,m2,m3,m4,p_func,method){
   cur.m1<- ifelse(dim(m1)[1]>0,sum(m1[,"total_numeric"]),0)
   cur.m2<- ifelse(dim(m2)[1]>0,sum(m2[,"total_numeric"]),0)
   cur.m3<- ifelse(dim(m3)[1]>0,sum(m3[,"total_numeric"]),0)
@@ -469,80 +472,221 @@ sample.by.ensemble<- function(m1,m2,m3,m4,p_func){
                               m2_size=cur.m2,
                               m3_size=cur.m3,
                               is_inverse=method)
-
-  func<- match.fun(p_func)
-  cur.start.info <- func(
-    m1=to.valid.matrix(m1[,!names(m1) %in% c("total_numeric")]),
-    m2=to.valid.matrix(m2[,-6]),
-    m3=to.valid.matrix(m3[,-6]),
-    m4=m4,
-    w=c.w)
+  if(c.w==c(0,0,0) && dim(m4)[1]==0){
+    res<- NA
+  } else{
+    func<- match.fun(p_func)
+    res<-  func(m1=to.valid.matrix(m1[,!colnames(m1) %in% c("total_numeric")]),
+           m2=to.valid.matrix(m2[,!colnames(m2) %in% c("total_numeric")]),
+           m3=to.valid.matrix(m3[,!colnames(m3) %in% c("total_numeric")]),
+           m4=m4,
+           w=c.w)
+  }
+  res
 }
 
-R_sample_start_info<- function(m,factor.1,factor.2,factor.3,method,p_cluster_id=NULL){
-
-  if( !is.null(p_cluster_id)){
-    cur.nofactor.start_info<- to.valid.matrix(dplyr::filter(as.data.frame(m$nofactor.start_info),cluster_id==p_cluster_id)[,c(2,3,6,7,8)])
-    #if(dim(cur.nofactor.start_info)[1]>0 & !is.null(p_cluster_id)){
-    cur.factor.1.start_info<- to.valid.matrix(dplyr::filter(as.data.frame(m$factor.1.start_info),cluster_id==p_cluster_id,factor==factor.1)[,c(3,4,7,8,9,10)])
-    cur.factor.2.start_info<- to.valid.matrix(dplyr::filter(as.data.frame(m$factor.2.start_info),cluster_id==p_cluster_id,factor==factor.2)[,c(3,4,7,8,9,10)])
-    cur.factor.3.start_info<- to.valid.matrix(dplyr::filter(as.data.frame(m$factor.3.start_info),cluster_id==p_cluster_id,factor==factor.3)[,c(3,4,7,8,9,10)])
-    cur.m1<- ifelse(dim(cur.factor.1.start_info)[1]>0,sum(cur.factor.1.start_info[,6]),0)
-    cur.m2<- ifelse(dim(cur.factor.2.start_info)[1]>0,sum(cur.factor.2.start_info[,6]),0)
-    cur.m3<- ifelse(dim(cur.factor.3.start_info)[1]>0,sum(cur.factor.3.start_info[,6]),0)
-
-    c.w<- build_vector_of_sizes(m1_size=cur.m1,
-                                m2_size=cur.m2,
-                                m3_size=cur.m3,
-                                is_inverse=method)
-
-    cur.start.info <- sample_start_info(
-      m1=to.valid.matrix(cur.factor.1.start_info[,-6]),
-      m2=to.valid.matrix(cur.factor.2.start_info[,-6]),
-      m3=to.valid.matrix(cur.factor.3.start_info[,-6]),
-      m4=cur.nofactor.start_info,
-      w=c.w)
-  } else{
-    cur.nocluster.nofactor.start_info<- to.valid.matrix(m$nocluster.nofactor.start_info[,c(1,2,5,6,7)])
-    if(dim(cur.nocluster.nofactor.start_info)[1]>0){
-      cur.nocluster.factor.1.start_info<- to.valid.matrix(dplyr::filter(as.data.frame(m$nocluster.factor.1.start_info),factor==factor.1)[,c(2,3,6,7,8,9)])
-      cur.nocluster.factor.2.start_info<- to.valid.matrix(dplyr::filter(as.data.frame(m$nocluster.factor.2.start_info),factor==factor.2)[,c(2,3,6,7,8,9)])
-      cur.nocluster.factor.3.start_info<- to.valid.matrix(dplyr::filter(as.data.frame(m$nocluster.factor.3.start_info),factor==factor.3)[,c(2,3,6,7,8,9)])
-      cur.m1<- ifelse(dim(cur.nocluster.factor.1.start_info)[1]>0,sum(cur.nocluster.factor.1.start_info[,6]),0)
-      cur.m2<- ifelse(dim(cur.nocluster.factor.2.start_info)[1]>0,sum(cur.nocluster.factor.2.start_info[,6]),0)
-      cur.m3<- ifelse(dim(cur.nocluster.factor.3.start_info)[1]>0,sum(cur.nocluster.factor.3.start_info[,6]),0)
-
-      c.w<- build_vector_of_sizes(m1_size=cur.m1,
-                                  m2_size=cur.m2,
-                                  m3_size=cur.m3,
-                                  is_inverse=method)
-
-      cur.start.info <- sample_start_info(
-        m1=to.valid.matrix(cur.nocluster.factor.1.start_info[,-6]),
-        m2=to.valid.matrix(cur.nocluster.factor.2.start_info[,-6]),
-        m3=to.valid.matrix(cur.nocluster.factor.3.start_info[,-6]),
-        m4=cur.nocluster.nofactor.start_info,
-        w=c.w)
-    } else{
-      if(dim(m$mean.seq_duration)[1]>0){
-        cur.index<- sample(1:dim(m$mean.seq_duration)[1],1,prob=m$mean.seq_duration$freq)
-        cur.numeric_duration <- rnorm(1,mean = unlist(m$mean.seq_duration[cur.index,"mean"]),sd = unlist(m$mean.seq_duration[cur.index,"sd"]))
-        cur.seq_duration <-m$mean.seq_duration[cur.index,"seq_duration"]
-      } else{
-        cur.numeric_duration <- rnorm(1,mean = m$mean.seq_duration[2],sd = m$mean.seq_duration[3])
-        cur.seq_duration <- m$mean.seq_duration[1]
-      }
-      if(dim(m$mean.start_hour)[1]>1){
-        cur.hour<- sample(m$mean.start_hour$hour,size=1,prob=m$mean.start_hour$freq)
-      } else if(dim(m$mean.start_hour)[1]==0){
-        cur.hour<- m$mean.start_hour[1]
-      } else{
-        cur.hour<- m$mean.start_hour$hour
-      }
-      cur.start.info <- c(cur.hour,cur.seq_duration,cur.numeric_duration)
+R_sample_start_info <- function(m,factor.1,factor.2,factor.3,method,p_cluster_id=NULL){
+  cur.support_level<- 1 #1 for factor&cluster(inclusing cluster); 2 for factor (including all); 3 for basic means
+  if(is.null(p_cluster_id)){
+    cur.support_level<- 2
+  }
+  if(cur.support_level==1){# for cluster&factor+cluster
+    res<- sample.by.ensemble(m1= to.valid.matrix(dplyr::filter(as.data.frame(m$factor.1.start_info),cluster_id==p_cluster_id,factor==factor.1)[,c(3,4,7,8,9,10)]),
+                             m2= to.valid.matrix(dplyr::filter(as.data.frame(m$factor.2.start_info),cluster_id==p_cluster_id,factor==factor.2)[,c(3,4,7,8,9,10)]),
+                             m3= to.valid.matrix(dplyr::filter(as.data.frame(m$factor.3.start_info),cluster_id==p_cluster_id,factor==factor.3)[,c(3,4,7,8,9,10)]),
+                             m4= to.valid.matrix(dplyr::filter(as.data.frame(m$nofactor.start_info),cluster_id==p_cluster_id)[,c(2,3,6,7,8)]),
+                             p_func= "sample_start_info",
+                             method)
+    if(is.na(res[1])){
+      cur.support_level<- 2
     }
   }
-  cur.start.info
+
+  if(cur.support_level==2){# for factor+all
+    res<- sample.by.ensemble(m1= to.valid.matrix(dplyr::filter(as.data.frame(m$nocluster.factor.1.start_info),factor==factor.1)[,c(2,3,6,7,8,9)]),
+                             m2= to.valid.matrix(dplyr::filter(as.data.frame(m$nocluster.factor.2.start_info),factor==factor.2)[,c(2,3,6,7,8,9)]),
+                             m3= to.valid.matrix(dplyr::filter(as.data.frame(m$nocluster.factor.3.start_info),factor==factor.3)[,c(2,3,6,7,8,9)]),
+                             m4= to.valid.matrix(m$nocluster.nofactor.start_info[,c(1,2,5,6,7)]),
+                             p_func= "sample_start_info",
+                             method)
+    if(is.na(res[1])){
+      cur.support_level<- 3
+    }
+  }
+  if(cur.support_level==3){# for basic statistics
+    #sampling sequence duration
+    if(dim(m$mean.seq_duration)[1]>0){
+      cur.index<- sample(1:dim(m$mean.seq_duration)[1],1,prob=m$mean.seq_duration$freq)
+      cur.numeric_duration <- rnorm(1,mean = unlist(m$mean.seq_duration[cur.index,"mean"]),sd = unlist(m$mean.seq_duration[cur.index,"sd"]))
+      cur.seq_duration <-m$mean.seq_duration[cur.index,"seq_duration"]
+    } else{
+      cur.numeric_duration <- rnorm(1,mean = m$mean.seq_duration[2],sd = m$mean.seq_duration[3])
+      cur.seq_duration <- m$mean.seq_duration[1]
+    }
+    #sampling start hour
+    if(dim(m$mean.start_hour)[1]>1){
+      cur.hour<- sample(m$mean.start_hour$hour,size=1,prob=m$mean.start_hour$freq)
+    } else if(dim(m$mean.start_hour)[1]==0){
+      cur.hour<- m$mean.start_hour[1]
+    } else{
+      cur.hour<- m$mean.start_hour$hour
+    }
+    res <- c(cur.hour,cur.seq_duration,cur.numeric_duration)
+  }
+  res
 }
 
+
+R_sample_cluster<- function(m,factor.1,factor.2,factor.3,method,prev_id=NULL){
+  cur.support_level<- 2 # 2 for factor (including all); 3 for basic means
+  starting.cluster<-F
+  if (is.null(prev_id)){
+    starting.cluster<-T
+  }
+  #first cluster
+  if(starting.cluster){
+    res<- sample.by.ensemble(m1= to.valid.matrix(dplyr::filter(as.data.frame(m$factor.1.start.cluster),factor==factor.1)[,c(1,5,6)]),
+                             m2= to.valid.matrix(dplyr::filter(as.data.frame(m$factor.2.start.cluster),factor==factor.2)[,c(1,5,6)]),
+                             m3= to.valid.matrix(dplyr::filter(as.data.frame(m$factor.3.start.cluster),factor==factor.3)[,c(1,5,6)]),
+                             m4= to.valid.matrix(as.data.frame(m$nofactor.start.cluster)[,c(1,4)]),
+                             p_func= "sample_starting_state",
+                             method)
+    if(is.na(res[1])){
+      cur.support_level<- 3
+    }
+    if(cur.support_level==3){# for basic statistics
+      if (dim(m$common_clusters)[1]>1){
+        cur.sampled.cluster <- sample(unlist(unique(m$common_clusters[,1])),size=1)
+      } else if(dim(m$common_clusters)[1]==1){
+        cur.sampled.cluster<- m$common_clusters[1]
+      } else {
+        cur.sampled.cluster <- NA
+      }
+      res <- c(cur.sampled.cluster,as.numeric(m$mean.cluster.tbe))
+    }
+  } else{ #cluster transition
+    res<- sample.by.ensemble(m1= to.valid.matrix(dplyr::filter(as.data.frame(m$factor.1.cluster.transition),factor==factor.1,cluster_id==prev_id)[,c(3,6,7,8,9)]),
+                             m2= to.valid.matrix(dplyr::filter(as.data.frame(m$factor.2.cluster.transition),factor==factor.2,cluster_id==prev_id)[,c(3,6,7,8,9)]),
+                             m3= to.valid.matrix(dplyr::filter(as.data.frame(m$factor.3.cluster.transition),factor==factor.3,cluster_id==prev_id)[,c(3,6,7,8,9)]),
+                             m4= to.valid.matrix(dplyr::filter(as.data.frame(m$nofactor.cluster.transition),cluster_id==prev_id)[,c(2,5,6,7)]),
+                             p_func= "sample_transition",
+                             method)
+    if(is.na(res[1])){
+      cur.support_level<- 3
+    }
+    if(cur.support_level==3){# for basic statistics
+      #sample cluster
+      cur.near <- dplyr::filter(
+        as.data.frame(to.valid.matrix(m$common_clusters)),"cluster_id.x" ==prev_id)[,c(2,5)]
+      if(dim(cur.near)[1]>1){
+        c_cluster_id <- sample(as.character(cur.near[,1]),size=1,prob=as.numeric(cur.near[,2]))
+      } else if(dim(cur.near)[1]==1){
+        c_cluster_id <-as.character(cur.near[1])
+      } else{
+        c_cluster_id<- NA
+      }
+      #add tbe
+      res <- c(c_cluster_id,as.numeric(m$mean.cluster.tbe))
+    }
+  }
+  res
+}
+
+R_sample_state<- function(m,p_cluster_id,factor.1,factor.2,factor.3,method,prev_id=NULL){
+  starting.state<-F
+  if (is.null(prev_id)){
+    starting.state<-T
+  }
+
+  cur.support_level<- 1 #1 for factor&cluster(inclusing cluster); 2 for factor (including all); 3 for basic means
+  if(is.null(p_cluster_id)){
+    cur.support_level<- 2
+  }
+
+  if(starting.state){
+    if(cur.support_level==1){# for cluster&factor+cluster
+      res<- sample.by.ensemble(m1= to.valid.matrix(dplyr::filter(as.data.frame(m$factor.1.starting.state),cluster_id==p_cluster_id,factor==factor.1)[,c(3,6,7)]),
+                               m2= to.valid.matrix(dplyr::filter(as.data.frame(m$factor.2.starting.state),cluster_id==p_cluster_id,factor==factor.2)[,c(3,6,7)]),
+                               m3= to.valid.matrix(dplyr::filter(as.data.frame(m$factor.3.starting.state),cluster_id==p_cluster_id,factor==factor.3)[,c(3,6,7)]),
+                               m4= to.valid.matrix(dplyr::filter(as.data.frame(m$nofactor.starting.state),cluster_id==p_cluster_id)[,c(2,5)]),
+                               p_func= "sample_starting_state",
+                               method)
+      if(is.na(res[1])){
+        cur.support_level<- 2
+      }
+    }
+
+    if(cur.support_level==2){# for factor+all
+      res<- sample.by.ensemble(m1= to.valid.matrix(dplyr::filter(as.data.frame(m$nocluster.factor.1.starting.state),factor==factor.1)[,c(2,5,6)]),
+                               m2= to.valid.matrix(dplyr::filter(as.data.frame(m$nocluster.factor.2.starting.state),factor==factor.2)[,c(2,5,6)]),
+                               m3= to.valid.matrix(dplyr::filter(as.data.frame(m$nocluster.factor.3.starting.state),factor==factor.3)[,c(2,5,6)]),
+                               m4= to.valid.matrix(as.data.frame(m$nocluster.nofactor.starting.state[,c(1,4)])),
+                               p_func= "sample_starting_state",
+                               method)
+      if(is.na(res[1])){
+        cur.support_level<- 3
+      }
+    }
+    if(cur.support_level==3){# for basic statistics
+      if(dim(m$common_states)[1]>1){
+        cur.state <-sample(unlist(unique(m$common_states[,1])),1)
+      } else if(dim(m$common_states)[1]==1){
+        cur.state <-unlist(m$common_states[1])
+      } else {
+        cur.state <- -1
+      }
+      res<- cur.state
+    }
+
+  } else{ # for state transition
+    if(cur.support_level==1){# for cluster&factor+cluster
+      res<- sample.by.ensemble(m1= to.valid.matrix(dplyr::filter(as.data.frame(m$factor.1.transition),cluster_id==p_cluster_id,factor==factor.1,state_id==prev_id)[,c(4,7,8,9,10)]),
+                               m2= to.valid.matrix(dplyr::filter(as.data.frame(m$factor.2.transition),cluster_id==p_cluster_id,factor==factor.2,state_id==prev_id)[,c(4,7,8,9,10)]),
+                               m3= to.valid.matrix(dplyr::filter(as.data.frame(m$factor.3.transition),cluster_id==p_cluster_id,factor==factor.3,state_id==prev_id)[,c(4,7,8,9,10)]),
+                               m4= to.valid.matrix((dplyr::filter(as.data.frame(m$nofactor.transition),cluster_id==p_cluster_id,state_id==prev_id))[,c(3,6,7,8)]),
+                               p_func= "sample_transition",
+                               method)
+      if(is.na(res[1])){
+        cur.support_level<- 2
+      }
+    }
+
+    if(cur.support_level==2){# for factor+all
+      res<- sample.by.ensemble(m1= to.valid.matrix(dplyr::filter(as.data.frame(m$nocluster.factor.1.transition),factor==factor.1,state_id==prev_id)[,c(3,6,7,8,9)]),
+                               m2= to.valid.matrix(dplyr::filter(as.data.frame(m$nocluster.factor.2.transition),factor==factor.2,state_id==prev_id)[,c(3,6,7,8,9)]),
+                               m3= to.valid.matrix(dplyr::filter(as.data.frame(m$nocluster.factor.3.transition),factor==factor.3,state_id==prev_id)[,c(3,6,7,8,9)]),
+                               m4= to.valid.matrix(dplyr::filter(as.data.frame(m$nocluster.nofactor.transition),state_id==prev_id)[,c(2,5,6,7)]),
+                               p_func= "sample_transition",
+                               method)
+      if(is.na(res[1])){
+        cur.support_level<- 3
+      }
+    }
+    if(cur.support_level==3){# for basic statistics
+      #sample state
+      cur.near <- dplyr::filter(as.data.frame(to.valid.matrix(m$common_states)),"state_id.x" ==prev_id)[,c(2,5)]
+      if(dim(cur.near)[1]==0){
+        cur.state <- -1
+      } else if(dim(cur.near)[1]==1){
+        cur.state <-unlist(cur.near[1])
+      } else {
+        if(dim(cur.near)[1]>1){
+          c.state_id <- sample(cur.near[,1],size=1,prob=cur.near[,2])
+        } else if(dim(cur.near)[1]==1){
+          c.state_id<-cur.near[1]
+        } else{
+          c.state_id <- -1
+        }
+      }
+      #sample tbe
+      if(!is.null(p_cluster_id)){
+        cur.tbe<- dplyr::filter(as.data.frame(m$mean.transition.tbe),cluster_id==p_cluster_id)[2]
+      } else{
+        cur.tbe<- mean(m$mean.transition.tbe[,2])
+      }
+      res <- c(c.state_id,as.numeric(cur.tbe))
+    }
+  }
+  res
+}
 
